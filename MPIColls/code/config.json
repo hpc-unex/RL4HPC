@@ -1,0 +1,33 @@
+{
+	"Agent": {
+		"n_episodes":   10000,
+		"P":            8,
+		"gamma":        1.0,
+		"alpha":        0.002,
+		"verbose":      "on",
+		"optimizer":    "Adam",
+		"hidden":       64
+	},
+	
+	"Environment": {
+		"P":            8,
+		"m":            512,
+		"M":            2,
+		"net":          "IB",
+		"root":         0
+	},
+	
+	"Benchmark": {
+		"exec":         "",
+		"opts":         ""
+	},
+	
+	"Output": {
+		"loss":         "./loss.txt",
+		"graph_file":   "./graph.txt",
+		"hosts_list":   "./hosts",
+		"hosts_file":   "./hosts_file",
+		"output_file":  "./output.txt",
+		"rank_file":    "./rank_file.txt"
+	}
+}
