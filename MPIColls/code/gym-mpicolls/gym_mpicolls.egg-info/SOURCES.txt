@@ -1,7 +1,0 @@
-README.md
-setup.py
-gym_mpicolls.egg-info/PKG-INFO
-gym_mpicolls.egg-info/SOURCES.txt
-gym_mpicolls.egg-info/dependency_links.txt
-gym_mpicolls.egg-info/requires.txt
-gym_mpicolls.egg-info/top_level.txt

@@ -9,11 +9,10 @@
 
 
 
-import gym
-import gym_mpicolls
 import numpy  as np
 
 import sys
+sys.path.append('../Env')
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -33,6 +32,7 @@ import pdb
 
 import json
 
+from mpicolls_env import MPICollsEnv
 
 
 # Load environment and see spaces
@@ -236,50 +236,6 @@ def plot_graph(g, label):
 
 
 
-# TBD:
-def generate_hosts_files(params):
-	
-	hosts_cur_name = params["hosts_list"]
-	
-	hosts_list = list()
-
-	# Write the host file
-	hosts_f_name  = params["hosts_file"]
-	hosts_file = open(hosts_f_name,"w+")
-	with open(hosts_cur_name, 'r') as h_file:
-		for host in h_file:
-			hosts_file.write(host.rstrip() + " " + "slots=24\n")
-			hosts_list.append(host.rstrip())
-	h_file.close()
-	
-	hosts_file.close()
-
-	
-	# Write the rank file (TODO)
-	rank_f_name = params["rank_file"]
-	rank_file  = open(rank_f_name,"w+")
-
-	#for p in range(P):
-	#    'rank {}={} slot=0-5'.format(p, host, "0-5")
-	rank_file.write('rank {}={} slot={}\n'.format(0, hosts_list[0], "0-5"))
-	rank_file.write('rank {}={} slot={}\n'.format(1, hosts_list[1], "0-5"))
-	rank_file.write('rank {}={} slot={}\n'.format(2, hosts_list[0], "6-11"))
-	rank_file.write('rank {}={} slot={}\n'.format(3, hosts_list[1], "6-11"))
-	rank_file.write('rank {}={} slot={}\n'.format(4, hosts_list[0], "12-17"))
-	rank_file.write('rank {}={} slot={}\n'.format(5, hosts_list[1], "12-17"))
-	rank_file.write('rank {}={} slot={}\n'.format(6, hosts_list[0], "18-23"))
-	rank_file.write('rank {}={} slot={}\n'.format(7, hosts_list[1], "18-23"))
-
-	rank_file.close()
-				
-				
-	# Names for files
-    # params["hosts_file"] = hosts_f_name
-	# params["rank_file"] = rank_f_name
-				
-				
-	return
-
 
 
 
@@ -324,8 +280,7 @@ output_file = config["Output"]["output_file"]
 
 
 
-params_output = config["Output"]
-generate_hosts_files(params_output)
+
 
 
 # TBD: las siguientes lineas pueden sobrar:
@@ -335,7 +290,7 @@ generate_hosts_files(params_output)
 
 
 params_env = config["Environment"]
-env = gym.make('MPIColls-v0', params=params_env)
+env = MPICollsEnv(params=params_env)
 
 
 #  REINFORCE algorithm: Policy Gradients Monte Carlo (On-Policy)
