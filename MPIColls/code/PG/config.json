@@ -4,9 +4,12 @@
 		"P":            8,
 		"gamma":        1.0,
 		"alpha":        0.001,
-		"verbose":      "on",
+		"verbose":      false,
 		"optimizer":    "Adam",
-		"hidden":       64
+		"NN": {
+			"type":			"DNN",
+			"hidden":       [ 64, 64 ]
+		}
 	},
 	
 	"Environment": {

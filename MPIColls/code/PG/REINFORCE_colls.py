@@ -13,6 +13,7 @@ import numpy  as np
 
 import sys
 sys.path.append('../Env')
+sys.path.append('../utils')
 
 import torch
 import torch.nn as nn
@@ -22,18 +23,20 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 
 #get_ipython().run_line_magic('matplotlib', 'inline')
-import matplotlib.pyplot as plt
-import pandas
-import networkx as nx
-from networkx.drawing.nx_agraph import graphviz_layout
+# import matplotlib.pyplot as plt
+# import pandas
+# import networkx as nx
+# from networkx.drawing.nx_agraph import graphviz_layout
 
-import sys
+# import sys
 import time
 import pdb
 
 import json
 
-from mpicolls_env import MPICollsEnv
+from mpicolls_env  import MPICollsEnv
+from graph         import plot_graph
+from plots         import plot_loss
 
 
 
@@ -42,14 +45,16 @@ from mpicolls_env import MPICollsEnv
 
 class PolicyNetwork(nn.Module):
 	
-	def __init__(self, num_inputs, num_outputs, hidden_size):
+	def __init__(self, num_inputs, num_outputs, params_nn):
 	
 		super(PolicyNetwork, self).__init__()
 		
+		hidden = params_nn["hidden"]
+		
 		self.num_outputs = num_outputs
-		self.hidden1 = nn.Linear(num_inputs,  hidden_size)
-		self.hidden2 = nn.Linear(hidden_size, hidden_size)
-		self.output  = nn.Linear(hidden_size, num_outputs)
+		self.hidden1 = nn.Linear(num_inputs, hidden[0])
+		self.hidden2 = nn.Linear(hidden[0],  hidden[1])
+		self.output  = nn.Linear(hidden[1],  num_outputs)
 		
 		self.softmax = nn.Softmax(dim = -1)
 		
@@ -78,13 +83,17 @@ class Agent(object):
 		self.params = params
 		print(self.params)
 		
-		self.gamma    = 1.00   # Almost Undiscounted
-		self.alpha    = 0.001  # Learning rate (antes: 0.002)
-		self.verbose  = False  # Verbosity
+		self.gamma    = params["gamma"]    # Almost Undiscounted
+		self.alpha    = params["alpha"]    # Learning rate (antes: 0.002)
+		self.verbose  = params["verbose"]  # Verbosity
+		self.P        = params["P"]
 		
-		self.policyNN = PolicyNetwork(P*P, P*P, 64)
+		self.policyNN = PolicyNetwork(self.P*self.P,  # Input
+									  self.P*self.P,  # Output
+									  params["NN"])   # Hidden
 		
-		self.optimizer = torch.optim.Adam(self.policyNN.parameters(), lr=self.alpha)
+		self.optimizer = torch.optim.Adam(self.policyNN.parameters(),
+										  lr=self.alpha)
 		
 		
 	def reset(self):
@@ -146,8 +155,8 @@ class Agent(object):
 		self.saved_logprobs.append(logprob)
 		
 		# Sender and receiver
-		P_s = action.item() // P
-		P_r = action.item() %  P
+		P_s = action.item() // self.P
+		P_r = action.item() %  self.P
 		
 		
 		if self.verbose:
@@ -196,13 +205,41 @@ class Agent(object):
 			# print("States:  ",  self.saved_states)
 			print("Rewards: ",  self.saved_rewards)
 			print("Logprobs: ", self.saved_logprobs)
+
+
+
 				
-				
+	def predict_trajectory (self):
+		
+		s = env.reset() # Start from initial state
+		agent.reset()
+		terminal = False
+		t = 0
+		
+		print(s)
+
+		while not terminal:
+			
+			a = self.predict(s)
+			
+			print(a)
+			s_, r, terminal, info = env.step(a)
+			s = np.copy(s_)
+			
+			t = t + 1
+			if (t > self.P * 2):  # Error control
+				break
+
+		print(s_)
+		plot_graph(s_, "Monte Carlo Policy Gradients")
+
+
+			
 	def predict (self, s):
 
 		# Transform into a Tensor
 		state_tensor = torch.FloatTensor(s).view(1, -1)
-	
+
 		# Policy: next action
 		action_probs = self.policyNN(state_tensor)
 		
@@ -210,22 +247,12 @@ class Agent(object):
 		action = action_probs.argmax()
 		
 		# Sender and receiver
-		P_s = action.item() // P
-		P_r = action.item() %  P
+		P_s = action.item() // self.P
+		P_r = action.item() %  self.P
 		
 		return (P_s, P_r)
 
 
-
-
-
-def plot_graph(g, label):
-	
-	G = nx.DiGraph()
-	G = nx.from_numpy_matrix(g)
-	nx.draw_networkx(G, arrows=True, with_labels=True, node_color='w', label=label) #, layout='tree')
-	
-	plt.axis('off')
 
 
 
@@ -244,37 +271,49 @@ def read_config ():
 		with open(config_file, 'r') as js:
 			config = json.load(js)
 
-	except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
+	except EnvironmentError:
 		print ('Error: file not found: ', config_file)
 
 	return config
 
 
 
-# MAIN
 
+
+
+##########   MAIN   ##########
+
+
+# Read config/params from a JSON file
 config = read_config()
 
-params_agent = config["Agent"]
+
+# Parameters for the different parts of the app.
+params_agent  = config["Agent"]
+params_env    = config["Environment"]
+params_bench  = config["Benchmark"]
+params_output = config["Output"]
 
 
+# Create Environment instance
+env = MPICollsEnv(params=params_env)
+
+
+# Create Agent instance
+agent = Agent(env, params_agent)
+
+
+
+# TODO: what parameter does it need here?
 NO_EPISODES = params_agent["n_episodes"]
 interval = (NO_EPISODES // 20)
 
+IMB     = params_bench["exec"]
+IMBOPT  = params_bench["opts"]
 
-P = params_agent["P"] # int(sys.argv[2])
-
-IMB     = config["Benchmark"]["exec"]
-IMBOPT  = config["Benchmark"]["opts"]
-
-graph_file  = config["Output"]["graph_file"]
-hosts_file  = config["Output"]["hosts_file"]
-output_file = config["Output"]["output_file"]
-
-
-
-
-
+graph_file  = params_output["graph_file"]
+hosts_file  = params_output["hosts_file"]
+output_file = params_output["output_file"]
 
 # TBD: las siguientes lineas pueden sobrar:
 # OPTIONS = IMB + " " + IMBOPT
@@ -282,17 +321,7 @@ output_file = config["Output"]["output_file"]
 # params["exec_command"] = EXEC
 
 
-params_env = config["Environment"]
-env = MPICollsEnv(params=params_env)
 
-
-#  REINFORCE algorithm: Policy Gradients Monte Carlo (On-Policy)
-
-# OJO: quitar esto al final
-# np.random.seed(seed=42)
-
-
-agent = Agent(env, params_agent)
 
 J_history = []
 T_history = []
@@ -322,8 +351,7 @@ for episode in range(NO_EPISODES):
 	
 		s = np.copy(s_)
 	
-	agent.render()
-	
+
 	# Learn Policy
 	J = agent.learn()
 
@@ -331,8 +359,8 @@ for episode in range(NO_EPISODES):
 	T_history.append(len(agent.saved_rewards))
 	R_history.append(sum(agent.saved_rewards))
 
-	g = np.copy(s_)
-		
+	agent.render()
+
 
 	if (episode % interval == 0):
 
@@ -367,9 +395,9 @@ print("Wallclock time: ", end - start)
 
 
 
-window = 10
-smoothed_rewards = [np.mean(R_history[i-window:i+1]) if i > window
-					else np.mean(R_history[:i+1]) for i in range(len(R_history))]
+# window = 10
+# smoothed_rewards = [np.mean(R_history[i-window:i+1]) if i > window
+#					else np.mean(R_history[:i+1]) for i in range(len(R_history))]
 """
 	plt.figure(figsize=(12,8))
 	plt.plot(R_history)
@@ -385,95 +413,11 @@ smoothed_rewards = [np.mean(R_history[i-window:i+1]) if i > window
 # Plot cost function values: J_history
 # print(J_history)
 
-j = np.array(J_history)
-t = np.array(T_history)
-# d = D_history
-
-
-# Reduce dimensionality
-X_AXIS = 1000
-
-j = j.reshape((X_AXIS, -1))
-
-j_max = j.max(axis=1)
-j_min = j.min(axis=1)
-j_mean = j.mean(axis=1)
-
-t = t.reshape((X_AXIS, -1))
-t = t.mean(axis=1)
-
-arr_mean = []
-for i in j_mean:
-  arr_mean.append(i.item())
-
-
-j_ndarr = np.empty(j.shape, dtype=float)
-for i in range(0, j.shape[0]-1):
-  for k in range(0, j.shape[1]-1):
-    j_ndarr[i][k] = j[i][k].item()
-
-j_std = np.std(j_ndarr, axis=1)
-
-
-plt.figure(figsize=(12,8))
-plt.axis('on')
-
-plt.plot(np.arange(0, X_AXIS, 1), j_mean, color='blue', marker='.')
-
-plt.fill_between(np.arange(0, X_AXIS, 1), arr_mean - j_std, arr_mean + j_std, color='blue', alpha=0.2)
-
-plt.title("Cost function per Episode")
-plt.xlabel('# Episode')
-plt.ylabel('J')
-# plt.ylim(0)
-plt.show()
-
-"""
-plt.plot(np.arange(0, X_AXIS, 1), t, color='red', marker='.')
-plt.title("#steps in Trajectory per Episode")
-plt.xlabel('# Episode')
-plt.ylabel('T')
-plt.ylim(0)
-plt.show()
-
-plt.plot(np.arange(0, X_AXIS, 1), d, color='green', marker='.')
-plt.title("Depth of tree per Episode")
-plt.xlabel('# Episode')
-plt.ylabel('Depth')
-plt.ylim(0)
-plt.show()
-"""
-
+plot_loss (J_history, T_history)
 
 
 
 
 # PREDICT
-s = env.reset()
-agent.reset()
-terminal = False
-T = 0
-print("PREDICT (only as an example): ")
-print(s)
-rewards=[]
-while not terminal:
-	
-	a = agent.predict(s)
-	print(a)
-	s_, r, terminal, info = env.step(a)
-	rewards.append(r)
-	s = np.copy(s_)
-	# print(s)
+agent.predict_trajectory()
 
-	T = T + 1
-	if (T == 100):
-		break
-
-print("Rewards: ", rewards)
-
-print(s_)
-
-"""
-	g = s_
-	plot_graph(g, "Monte Carlo Policy Gradients")
-	"""
