@@ -5,7 +5,7 @@
 # Implementing MonteCarlo policy gradient algorithm
 # (REINFORCE, [Williams, 1992]) to learn an optimal graph for
 # performing a bropadcast MPI collective operation.
-# Optimal: assumed that reward depends on depth and type of comm. channel (by now).
+
 
 
 
@@ -13,6 +13,7 @@ import numpy  as np
 
 import sys
 sys.path.append('../Env')
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -34,14 +35,6 @@ import json
 
 from mpicolls_env import MPICollsEnv
 
-
-# Load environment and see spaces
-
-# P = 8
-
-M = (0, 0, 0, 0, 1, 1, 1, 1)  # P = 8
-# M = (0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2) # P = 12
-# M = (0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3) # P = 16
 
 
 
@@ -95,7 +88,7 @@ class Agent(object):
 		
 		
 	def reset(self):
-			# Reset episode
+		# Reset episode
 		self.saved_states   = []
 		self.saved_actions  = []
 		self.saved_rewards  = []
