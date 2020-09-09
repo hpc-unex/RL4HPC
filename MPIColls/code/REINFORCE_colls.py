@@ -1,15 +1,12 @@
 #!/usr/bin/env python
-# coding: utf-8
 
-# ## MonteCarlo Policy Gradients (REINFORCE)
+## MonteCarlo Policy Gradients (REINFORCE)
 #
-# Implementing MonteCarlo policy gradient algorithm (REINFORCE, [Williams, 1992])
-# for learning an optimal graph for performing a bropadcast MPI collective operation.
-#
+# Implementing MonteCarlo policy gradient algorithm
+# (REINFORCE, [Williams, 1992]) to learn an optimal graph for
+# performing a bropadcast MPI collective operation.
 # Optimal: assumed that reward depends on depth and type of comm. channel (by now).
-#
 
-# In[1]:
 
 
 import gym
@@ -24,7 +21,6 @@ import torch.nn.functional as F
 
 from torch.distributions import Categorical
 
-
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import pandas
@@ -35,12 +31,8 @@ import sys
 import time
 import pdb
 
+import json
 
-# In[2]:
-
-
-
-# In[3]:
 
 
 # Load environment and see spaces
@@ -53,8 +45,7 @@ M = (0, 0, 0, 0, 1, 1, 1, 1)  # P = 8
 
 
 
-# In[4]:
-
+# Policy Network
 
 class PolicyNetwork(nn.Module):
 	
@@ -85,15 +76,15 @@ class PolicyNetwork(nn.Module):
 
 
 
-# In[5]:
-
-
 # Agent
 
 class Agent(object):
 	
-	def __init__ (self, env):
+	def __init__ (self, env, params):
 	
+		self.params = params
+		print(self.params)
+		
 		self.gamma    = 1.00   # Almost Undiscounted
 		self.alpha    = 0.001  # Learning rate (antes: 0.002)
 		self.verbose  = False  # Verbosity
@@ -234,8 +225,6 @@ class Agent(object):
 
 
 
-# In[6]:
-
 
 def plot_graph(g, label):
 	
@@ -250,12 +239,12 @@ def plot_graph(g, label):
 # TBD:
 def generate_hosts_files(params):
 	
-	hosts_cur_name = params["Output"]["hosts_list"]
+	hosts_cur_name = params["hosts_list"]
 	
 	hosts_list = list()
 
 	# Write the host file
-	hosts_f_name  = params["Output"]["hosts_file"]
+	hosts_f_name  = params["hosts_file"]
 	hosts_file = open(hosts_f_name,"w+")
 	with open(hosts_cur_name, 'r') as h_file:
 		for host in h_file:
@@ -267,7 +256,7 @@ def generate_hosts_files(params):
 
 	
 	# Write the rank file (TODO)
-	rank_f_name = params["Output"]["rank_file"]
+	rank_f_name = params["rank_file"]
 	rank_file  = open(rank_f_name,"w+")
 
 	#for p in range(P):
@@ -293,60 +282,38 @@ def generate_hosts_files(params):
 
 
 
+
+# Read config from the .json file:
+def read_config ():
+
+	config = {}
+	config_file = 'config.json'
+	if len(sys.argv) == 2:
+		config_file = sys.argv[1]
+
+	try:
+		with open(config_file, 'r') as js:
+			config = json.load(js)
+
+	except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
+		print ('Error: file not found: ', config_file)
+
+	return config
+
+
+
 # MAIN
 
+config = read_config()
 
-import json
-
-""" config = {
-	
-	"article": [
-	
-	{
-	"id":"01",
-	"language": "JSON",
-	"edition": "first",
-	"author": "Derrick Mwiti"
-	},
-	
-	{
-	"id":"02",
-	"language": "Python",
-	"edition": "second",
-	"author": "Derrick Mwiti"
-	}
-	],
-	
-	"blog": [
-	
-	{
-	"name": "Datacamp",
-	"URL":"datacamp.com"
-	}
-	]
-	
-	} """
-
-with open('config.json', 'r') as js:
-	config = json.load(js)
-	print(config)
+params_agent = config["Agent"]
 
 
-
-
-a_params = config["Agent"]
-print(a_params)
-
-
-NO_EPISODES = a_params["n_episodes"]
+NO_EPISODES = params_agent["n_episodes"]
 interval = (NO_EPISODES // 20)
 
 
-# M   = a_params["M"] # int(sys.argv[1])
-
-P   = a_params["P"] # int(sys.argv[2])
-# net = sys.argv[3]
-# m   = int(sys.argv[4])
+P = params_agent["P"] # int(sys.argv[2])
 
 IMB     = config["Benchmark"]["exec"]
 IMBOPT  = config["Benchmark"]["opts"]
@@ -355,21 +322,10 @@ graph_file  = config["Output"]["graph_file"]
 hosts_file  = config["Output"]["hosts_file"]
 output_file = config["Output"]["output_file"]
 
-# print('Parameters: (M, P, net, m): ', M, P, net, m)
 
-"""
-params["P"] = P
-params["M"] = M
-params["m"] = m
-params["net"] = net
 
-params["graph_file"]  = graph_file
-params["output_file"] = output_file
-params["hosts_file"]  = hosts_file
-params["rank_file"]   = ""
-"""
-
-generate_hosts_files(config)
+params_output = config["Output"]
+generate_hosts_files(params_output)
 
 
 # TBD: las siguientes lineas pueden sobrar:
@@ -378,41 +334,28 @@ generate_hosts_files(config)
 # params["exec_command"] = EXEC
 
 
-
-
-env = gym.make('MPIColls-v0', params=config["Environment"])
-
-print("Observation space: ", env.observation_space)
-print("Action space: ",      env.action_space)
-
-print(env.observation_space.sample())
-print(env.action_space.sample())
-
-
+params_env = config["Environment"]
+env = gym.make('MPIColls-v0', params=params_env)
 
 
 #  REINFORCE algorithm: Policy Gradients Monte Carlo (On-Policy)
-
 
 # OJO: quitar esto al final
 # np.random.seed(seed=42)
 
 
-agent = Agent(env)
+agent = Agent(env, params_agent)
 
-J_history = [] # np.zeros(NO_EPISODES)
-T_history = [] # np.zeros(NO_EPISODES)
-# D_history = np.zeros(NO_EPISODES)
-R_history = [] # np.zeros(NO_EPISODES)
+J_history = []
+T_history = []
+R_history = []
 
 start = time.time()
-
 
 print("Starting ...", flush=True)
 
 
 for episode in range(NO_EPISODES):
-#for episode in range(100):
 	
 	terminal = False
 	reward   = 0
@@ -421,10 +364,6 @@ for episode in range(NO_EPISODES):
 	s = env.reset()
 	agent.reset()
 				
-	# if episode == 10:
-	#     pdb.set_trace()
-	#     print("+++++  EPISODE  +++++ ", episode)
-
 	while not terminal:
 
 		a = agent.select_action(s)
@@ -435,7 +374,6 @@ for episode in range(NO_EPISODES):
 	
 		s = np.copy(s_)
 	
-	
 	agent.render()
 	
 	# Learn Policy
@@ -445,15 +383,9 @@ for episode in range(NO_EPISODES):
 	T_history.append(len(agent.saved_rewards))
 	R_history.append(sum(agent.saved_rewards))
 
-	# J_history[episode] = J
-	# T_history[episode] = len(agent.saved_rewards)
-	# D_history[episode] = np.max(np.max(s_, axis=0))
-	# R_history[episode] = sum(agent.saved_rewards)
-	
 	g = np.copy(s_)
 		
-		
-		
+
 	if (episode % interval == 0):
 
 		start = episode - interval
@@ -480,8 +412,6 @@ for episode in range(NO_EPISODES):
 		"""
 		
 		env.render()
-
-
 
 
 end = time.time()
@@ -513,7 +443,7 @@ t = np.array(T_history)
 
 
 # Reduce dimensionality
-X_AXIS = 100
+X_AXIS = 1000
 
 j = j.reshape((X_AXIS, -1))
 
