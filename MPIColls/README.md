@@ -7,6 +7,8 @@
 NetworkX 2.5: plot graphs
 Matplotlib: plot results
 Python JSON read: reading config
+pydot
+
 
 
 ### Clone repository: 
