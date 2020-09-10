@@ -5,10 +5,10 @@ import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-def plot_loss (J_history, T_history):
+def plot_loss (J_history):
 
 	j = np.array(J_history)
-	t = np.array(T_history)
+	#t = np.array(T_history)
 	# d = D_history
 
 
@@ -21,8 +21,8 @@ def plot_loss (J_history, T_history):
 	j_min = j.min(axis=1)
 	j_mean = j.mean(axis=1)
 
-	t = t.reshape((X_AXIS, -1))
-	t = t.mean(axis=1)
+	#t = t.reshape((X_AXIS, -1))
+	#t = t.mean(axis=1)
 
 	arr_mean = []
 	for i in j_mean:

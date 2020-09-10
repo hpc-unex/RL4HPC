@@ -1,32 +1,37 @@
 {
 	"Agent": {
-		"n_episodes":   10000,
-		"P":            8,
-		"gamma":        1.0,
-		"alpha":        0.001,
-		"verbose":      false,
-		"optimizer":    "Adam",
+		"n_episodes":          10000,
+		"P":                   8,
+		"gamma":               1.0,
+		"alpha":               0.001,
+		"verbose":             true,
+		"verbosity_interval":  500,
+		"optimizer":           "Adam",
 		"NN": {
-			"type":			"DNN",
-			"hidden":       [ 64, 64 ]
+			"type":			      "DNN",
+			"hidden":             [ 64, 64 ]
 		}
 	},
 	
 	"Environment": {
-		"P":            8,
-		"m":            512,
-		"M":            2,
-		"nodes":        ["n0", "n1"],
-		"net":          "IB",
-		"root":         0
+		"P":                   8,
+		"m":                   512,
+		"M":                   2,
+		"S":                   16384,
+		"nodes":               ["n0", "n1"],
+		"net":                 "IB",
+		"root":                0,
+		"reward_type":         "self",
+		"verbose":             true,
+		"verbosity_interval":  500,
+	
+		"Benchmark": {
+			"exec":         		"",
+			"opts":         		""
+		}
 	},
 	
-	"Benchmark": {
-		"exec":         "",
-		"opts":         ""
-	},
-	
-	"Output": {
+	"I/O Data": {
 		"loss":         "./loss.txt",
 		"graph_file":   "./graph.txt",
 		"hosts_list":   "./hosts",

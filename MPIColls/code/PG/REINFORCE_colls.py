@@ -29,6 +29,7 @@ import json
 from mpicolls_env  import MPICollsEnv
 from graph         import plot_graph
 from plots         import plot_loss
+from config        import read_config
 
 
 
@@ -73,12 +74,16 @@ class Agent(object):
 	def __init__ (self, env, params):
 	
 		self.params = params
-		print(self.params)
 		
-		self.gamma    = params["gamma"]    # Almost Undiscounted
-		self.alpha    = params["alpha"]    # Learning rate (antes: 0.002)
-		self.verbose  = params["verbose"]  # Verbosity
-		self.P        = params["P"]
+		self.gamma         = params["gamma"]    # Almost Undiscounted
+		self.alpha         = params["alpha"]    # Learning rate (antes: 0.002)
+		self.P             = params["P"]
+		self.n_episodes    = params["n_episodes"]
+		self.verbose       = params["verbose"]  # Verbosity
+		self.verbosity_int = params["verbosity_interval"]
+		
+		# Store loss evolution
+		self.J_history = []
 		
 		self.policyNN = PolicyNetwork(self.P*self.P,  # Input
 									  self.P*self.P,  # Output
@@ -150,11 +155,6 @@ class Agent(object):
 		P_s = action.item() // self.P
 		P_r = action.item() %  self.P
 				
-		if self.verbose:
-			print("-----  Select Action  -----")
-			print("ACTION_PROBS: ", action_probs, action_probs.shape)
-			print("ACTION.ITEM: ",  action.item(), P_s, P_r)
-			print("LOG_PROB: ",     logprob, logprob.shape)
 		
 		return P_s, P_r
 		
@@ -172,31 +172,13 @@ class Agent(object):
 		
 		cost = loss.mean()
 		
-		if self.verbose:
-			print("-----  Learn  -----")
-			print("DISCOUNTED_REWARDS:", discounted_reward, discounted_reward.shape)
-			print("LOG_PROBS: ", logprob_tensor, logprob_tensor.shape)
-			print("LOSS vector: ", loss, loss.shape)
-			print("LOSS: ", cost, cost.shape)
-
 		self.optimizer.zero_grad()
 		cost.backward()
 		self.optimizer.step()
 
 		return cost
-	
-	
-	def render (self):
-	
-		if self.verbose:
-			print("-----  Agent  -----")
-			# print("Actions: ",  self.saved_actions)
-			# print("States:  ",  self.saved_states)
-			print("Rewards: ",  self.saved_rewards)
-			print("Logprobs: ", self.saved_logprobs)
 
-
-				
+	
 	def predict_trajectory (self):
 		
 		s = env.reset() # Start from initial state
@@ -241,25 +223,35 @@ class Agent(object):
 		return (P_s, P_r)
 
 
-
-
-
-# Read config from the .json file:
-def read_config ():
-
-	config = {}
-	config_file = 'config.json'
-	if len(sys.argv) == 2:
-		config_file = sys.argv[1]
-
-	try:
-		with open(config_file, 'r') as js:
-			config = json.load(js)
-
-	except EnvironmentError:
-		print ('Error: file not found: ', config_file)
-
-	return config
+	def render (self, episode, J):
+		
+		self.J_history.append(J)
+		# T_history.append(len(agent.saved_rewards))
+		# R_history.append(sum(agent.saved_rewards))
+		
+		if self.verbose and not (episode % self.verbosity_int):
+			
+			start = episode - self.verbosity_int
+			end   = episode
+			n     = end - start
+			print("\nAGENT: Episode ", episode," of ", self.n_episodes)
+			print("-------------------------")
+			print("Loss:    ", sum(agent.J_history[start:end]) / n)
+			# print("T:       ", sum(agent.T_history[start:end]) / n)
+			# print("Depth:   ", np.mean(D_history[start:end]))
+			# print("Rewards: ", sum(R_history[start:end]) / n)
+			print(flush=True);
+			"""
+			o_file = open(output_file, "a")
+			o_file.write("Episode " + str(episode) + " of " + str(NO_EPISODES) + "\n")
+			o_file.write("------------------------- \n")
+			o_file.write("Loss:    " + str(np.mean(J_history[start:end])) + "\n")
+			o_file.write("T:       " + str(np.mean(T_history[start:end])) + "\n")
+			# o_file.write("Depth:   " + str(np.mean(D_history[start:end])) + "\n")
+			o_file.write("Rewards: " + str(np.mean(R_history[start:end])) + "\n")
+			o_file.flush();
+			o_file.close()
+			"""
 
 
 
@@ -272,12 +264,10 @@ def read_config ():
 # Read config/params from a JSON file
 config = read_config()
 
-
 # Parameters for the different parts of the app.
 params_agent  = config["Agent"]
 params_env    = config["Environment"]
-params_bench  = config["Benchmark"]
-params_output = config["Output"]
+params_iodata = config["I/O Data"]
 
 
 # Create Environment instance
@@ -290,31 +280,25 @@ agent = Agent(env, params_agent)
 
 
 # TODO: what parameter does it need here?
-NO_EPISODES = params_agent["n_episodes"]
-interval = (NO_EPISODES // 20)
-
+"""
 IMB     = params_bench["exec"]
 IMBOPT  = params_bench["opts"]
-
-graph_file  = params_output["graph_file"]
-hosts_file  = params_output["hosts_file"]
-output_file = params_output["output_file"]
-
 # TBD: las siguientes lineas pueden sobrar:
 # OPTIONS = IMB + " " + IMBOPT
 # EXEC = OPTIONS.split()
 # params["exec_command"] = EXEC
+graph_file  = params_output["graph_file"]
+hosts_file  = params_output["hosts_file"]
+output_file = params_output["output_file"]
+"""
 
 
 
-
-J_history = []
-T_history = []
-R_history = []
+# Main Learning Loop:
 
 start = time.time()
 
-for episode in range(NO_EPISODES):
+for episode in range(agent.n_episodes):
 	
 	terminal = False
 	reward   = 0
@@ -332,51 +316,21 @@ for episode in range(NO_EPISODES):
 		agent.save_step(s, a, r)
 	
 		s = np.copy(s_)
-	
 
 	# Learn Policy
 	J = agent.learn()
 
-	J_history.append(J)
-	T_history.append(len(agent.saved_rewards))
-	R_history.append(sum(agent.saved_rewards))
-
-	agent.render()
-
-
-	if (episode % interval == 0):
-
-		start = episode - interval
-		end   = episode
-		n = end - start
-		print("\nEpisode ", episode," of ", NO_EPISODES)
-		print("-------------------------")
-		print("Loss:    ", sum(J_history[start:end]) / n)
-		print("T:       ", sum(T_history[start:end]) / n)
-		# print("Depth:   ", np.mean(D_history[start:end]))
-		print("Rewards: ", sum(R_history[start:end]) / n)
-		print(flush=True);
-		
-		"""
-		o_file = open(output_file, "a")
-		o_file.write("Episode " + str(episode) + " of " + str(NO_EPISODES) + "\n")
-		o_file.write("------------------------- \n")
-		o_file.write("Loss:    " + str(np.mean(J_history[start:end])) + "\n")
-		o_file.write("T:       " + str(np.mean(T_history[start:end])) + "\n")
-		# o_file.write("Depth:   " + str(np.mean(D_history[start:end])) + "\n")
-		o_file.write("Rewards: " + str(np.mean(R_history[start:end])) + "\n")
-		o_file.flush();
-		o_file.close()
-		"""
-		
-		env.render()
+	# Show partial results
+	agent.render(episode, J)
+	env.render(episode)
 
 
 end = time.time()
 print("Wallclock time: ", end - start)
 
 
-plot_loss (J_history, T_history)
+# Outputs
+plot_loss (agent.J_history)
 
 
 # Example: predict a trajectory
