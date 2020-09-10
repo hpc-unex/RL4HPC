@@ -2,8 +2,14 @@
 #########  GUIDE ##########
 ###########################
 
+### Requirements:
 
-Clone repository: 
+NetworkX 2.5: plot graphs
+Matplotlib: plot results
+Python JSON read: reading config
+
+
+### Clone repository: 
 
 > git clone https://github.com/hpc-unex/colls.git
 

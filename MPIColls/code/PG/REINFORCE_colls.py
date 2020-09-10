@@ -22,16 +22,8 @@ import torch.nn.functional as F
 
 from torch.distributions import Categorical
 
-#get_ipython().run_line_magic('matplotlib', 'inline')
-# import matplotlib.pyplot as plt
-# import pandas
-# import networkx as nx
-# from networkx.drawing.nx_agraph import graphviz_layout
-
-# import sys
 import time
 import pdb
-
 import json
 
 from mpicolls_env  import MPICollsEnv
@@ -157,14 +149,12 @@ class Agent(object):
 		# Sender and receiver
 		P_s = action.item() // self.P
 		P_r = action.item() %  self.P
-		
-		
+				
 		if self.verbose:
 			print("-----  Select Action  -----")
 			print("ACTION_PROBS: ", action_probs, action_probs.shape)
 			print("ACTION.ITEM: ",  action.item(), P_s, P_r)
 			print("LOG_PROB: ",     logprob, logprob.shape)
-		
 		
 		return P_s, P_r
 		
@@ -189,7 +179,6 @@ class Agent(object):
 			print("LOSS vector: ", loss, loss.shape)
 			print("LOSS: ", cost, cost.shape)
 
-
 		self.optimizer.zero_grad()
 		cost.backward()
 		self.optimizer.step()
@@ -205,7 +194,6 @@ class Agent(object):
 			# print("States:  ",  self.saved_states)
 			print("Rewards: ",  self.saved_rewards)
 			print("Logprobs: ", self.saved_logprobs)
-
 
 
 				
@@ -251,9 +239,6 @@ class Agent(object):
 		P_r = action.item() %  self.P
 		
 		return (P_s, P_r)
-
-
-
 
 
 
@@ -329,9 +314,6 @@ R_history = []
 
 start = time.time()
 
-print("Starting ...", flush=True)
-
-
 for episode in range(NO_EPISODES):
 	
 	terminal = False
@@ -394,30 +376,9 @@ end = time.time()
 print("Wallclock time: ", end - start)
 
 
-
-# window = 10
-# smoothed_rewards = [np.mean(R_history[i-window:i+1]) if i > window
-#					else np.mean(R_history[:i+1]) for i in range(len(R_history))]
-"""
-	plt.figure(figsize=(12,8))
-	plt.plot(R_history)
-	plt.plot(smoothed_rewards)
-	#plt.ylim(bottom=min(smoothed_rewards), top=max(smoothed_rewards) + 1)
-	plt.ylim(bottom=-150, top=max(smoothed_rewards) + 1)
-	plt.ylabel('Total Rewards')
-	plt.xlabel('Episodes')
-	plt.show()
-	"""
-
-
-# Plot cost function values: J_history
-# print(J_history)
-
 plot_loss (J_history, T_history)
 
 
-
-
-# PREDICT
+# Example: predict a trajectory
 agent.predict_trajectory()
 
