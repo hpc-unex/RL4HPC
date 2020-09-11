@@ -27,9 +27,9 @@ $ conda activate myenv
 
 
 
-3. Run as admin setup.sh
+3. Run as admin install.sh
 
-$ sudo bash setup.sh
+$ sudo bash install.sh
 
 
 
