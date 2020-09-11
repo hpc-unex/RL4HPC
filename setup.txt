@@ -1,0 +1,45 @@
+-----------------------------
+------- Requirements: -------
+-----------------------------
+
+
+1. Download/Install Conda from:
+
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+
+
+2. Follow steps to install.
+
+
+---------------------
+------ Setup:  ------
+---------------------
+
+1. Create a conda environment.
+
+$ conda create -n myenv python=3.6
+
+
+
+2. Activate conda environment.
+
+$ conda activate myenv
+
+
+
+3. Run as admin setup.sh
+
+$ sudo bash setup.sh
+
+
+
+--------------------
+------- Run: -------
+--------------------
+
+1. Activate conda environment.
+
+
+$ conda activate myenv
+
+$ python ~/your_path/MPIColls/code/PG/REINFORCE_colls.py
