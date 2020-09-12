@@ -45,6 +45,12 @@ def plot_loss (J_history):
 
 	plt.fill_between(np.arange(0, X_AXIS, 1), arr_mean - j_std, arr_mean + j_std, alpha=0.1)
 
+
+	# Para que me imprima en los limites de J y se vea bien
+	diff10 = (np.max(j_mean) - np.min(j_mean)) * 0.1
+	plt.ylim((int(np.min(j_mean) - diff10), int(np.max(j_mean) + diff10)))
+
+
 	plt.title("Cost function per Episode")
 	plt.xlabel('# Episode')
 	plt.ylabel('J')

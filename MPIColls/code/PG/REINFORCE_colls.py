@@ -45,9 +45,8 @@ class PolicyNetwork(nn.Module):
 		hidden = params_nn["hidden"]
 		
 		self.num_outputs = num_outputs
-		self.hidden1 = nn.Linear(num_inputs, hidden[0])
-		self.hidden2 = nn.Linear(hidden[0],  hidden[1])
-		self.output  = nn.Linear(hidden[1],  num_outputs)
+		self.hidden  = nn.Linear(num_inputs, hidden[0])
+		self.output  = nn.Linear(hidden[0],  num_outputs)
 		
 		self.softmax = nn.Softmax(dim = -1)
 	
@@ -55,10 +54,7 @@ class PolicyNetwork(nn.Module):
 		
 		
 	def forward(self, state):
-		x = self.hidden1(state)
-		x = nn.Dropout(p=0.3)(x)
-		x = F.relu(x)
-		x = self.hidden2(x)
+		x = self.hidden(state)
 		x = nn.Dropout(p=0.3)(x)
 		x = F.relu(x)
 		x = self.output(x)

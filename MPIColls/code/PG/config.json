@@ -9,7 +9,7 @@
 		"optimizer":           "Adam",
 		"NN": {
 			"type":			      "DNN",
-			"hidden":             [ 64, 64 ]
+			"hidden":             [ 64 ]
 		}
 	},
 	
