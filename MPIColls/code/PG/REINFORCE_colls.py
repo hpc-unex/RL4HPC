@@ -50,6 +50,8 @@ class PolicyNetwork(nn.Module):
 		self.output  = nn.Linear(hidden[1],  num_outputs)
 		
 		self.softmax = nn.Softmax(dim = -1)
+	
+		# self.train()
 		
 		
 	def forward(self, state):
@@ -107,33 +109,6 @@ class Agent(object):
 		self.saved_rewards.append(r)
 		
 		
-	def get_return(self):
-
-		T = len(self.saved_rewards)
-
-		# print("SAVED_REWARDS: ", self.saved_rewards)
-
-		# Not to divide by 0:
-		eps = np.finfo(np.float32).eps.item()
-			
-		# Multiply by gamma
-		# returns = np.array([ (self.gamma**t) * self.saved_rewards[t] for t in range(T) ])
-		#
-		# returns = returns[::-1].cumsum()
-		# returns = returns[::-1]
-		
-		# Cummulative sum
-		R = 0
-		returns = []
-		for r in self.saved_rewards[::-1]:
-			R = r + self.gamma * R
-			returns.insert(0, R)
-		returns = np.array(returns)
-
-		# returns = (returns - returns.mean()) # / (returns.std() + eps)
-
-		return returns
-	
 	
 	def select_action (self, s):
 	
@@ -159,24 +134,46 @@ class Agent(object):
 		return P_s, P_r
 		
 		
+	def get_return(self):
 		
+		T = len(self.saved_rewards)
+		returns = np.empty(T, dtype=np.float)
+		
+		# Cummulative sum (G_t)
+		future_ret = 0
+		for t in reversed(range(T)):
+			future_ret = self.saved_rewards[t] + self.gamma * future_ret
+			returns[t] = future_ret
+		
+		
+		# TODO: Baseline
+		# eps = np.finfo(np.float32).eps.item() # Not to divide by 0
+		# returns = (returns - returns.mean()) # / (returns.std() + eps)
+
+		
+		return returns
+
+	
+
 	def learn (self):
 
-		# Get discounted reward tensor
+		# Compute discounted rewards (to Tensor):
 		discounted_reward = torch.FloatTensor(self.get_return())
 
-		# List of tensors to tensor
+		# Compute log_probs:
 		logprob_tensor = torch.cat(self.saved_logprobs)
-		
+		# logprob_tensor = torch.stack(self.saved_logprobs)
 		loss = -logprob_tensor * discounted_reward
 		
-		cost = loss.mean()
+		loss = torch.mean(loss)
+		# loss = torch.sum(loss)
 		
+		# Update parameters
 		self.optimizer.zero_grad()
-		cost.backward()
+		loss.backward()
 		self.optimizer.step()
 
-		return cost
+		return loss
 
 	
 	def predict_trajectory (self):
