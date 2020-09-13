@@ -158,11 +158,9 @@ class Agent(object):
 
 		# Compute log_probs:
 		logprob_tensor = torch.cat(self.saved_logprobs)
-		# logprob_tensor = torch.stack(self.saved_logprobs)
-		loss = -logprob_tensor * discounted_reward
 		
-		loss = torch.mean(loss)
-		# loss = torch.sum(loss)
+		loss = -logprob_tensor * discounted_reward
+		loss = torch.sum(loss)
 		
 		# Update parameters
 		self.optimizer.zero_grad()
