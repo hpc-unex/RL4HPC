@@ -2,8 +2,8 @@ import numpy as np
 import subprocess
 
 
-from self.self_reward import get_reward
-# from .tLop.tLop_reward import get_reward
+# from self.self_reward import get_reward
+from tLop.tLop_reward import get_reward
 # from .mpi.mpi_reward   import get_reward
 
 
