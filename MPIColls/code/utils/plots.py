@@ -14,6 +14,7 @@ def plot_loss (J_history):
 
 	# Reduce dimensionality
 	X_AXIS = 100
+	# X_AXIS = len(J_history)
 
 	j = j.reshape((X_AXIS, -1))
 
@@ -50,6 +51,7 @@ def plot_loss (J_history):
 	diff10 = (np.max(j_mean) - np.min(j_mean)) * 0.1
 	plt.ylim((int(np.min(j_mean) - diff10), int(np.max(j_mean) + diff10)))
 
+	plt.hlines(0, 0, X_AXIS, colors='r', linestyles='solid')
 
 	plt.title("Cost function per Episode")
 	plt.xlabel('# Episode')
@@ -64,7 +66,7 @@ def plot_loss (J_history):
 		plt.ylabel('T')
 		plt.ylim(0)
 		plt.show()
-		
+
 		plt.plot(np.arange(0, X_AXIS, 1), d, color='green', marker='.')
 		plt.title("Depth of tree per Episode")
 		plt.xlabel('# Episode')
@@ -72,4 +74,3 @@ def plot_loss (J_history):
 		plt.ylim(0)
 		plt.show()
 		"""
-

@@ -1,6 +1,6 @@
 {
 	"Agent": {
-		"n_episodes":          10000,
+		"n_episodes":          20000,
 		"P":                   8,
 		"gamma":               1.0,
 		"alpha":               0.001,
@@ -12,7 +12,7 @@
 			"hidden":             [ 64 ]
 		}
 	},
-	
+
 	"Environment": {
 		"P":                   8,
 		"m":                   512,
@@ -24,13 +24,13 @@
 		"reward_type":         "self",
 		"verbose":             true,
 		"verbosity_interval":  500,
-	
+
 		"Benchmark": {
 			"exec":         		"",
 			"opts":         		""
 		}
 	},
-	
+
 	"I/O Data": {
 		"loss":         "./loss.txt",
 		"graph_file":   "./graph.txt",
