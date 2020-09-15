@@ -19,6 +19,7 @@
 		"M":                   2,
 		"S":                   16384,
 		"nodes":               ["n0", "n1"],
+		"mapping":             [0,0,0,0,1,1,1,1],
 		"net":                 "IB",
 		"root":                0,
 		"reward_type":         "self",

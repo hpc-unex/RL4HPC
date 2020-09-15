@@ -11,5 +11,5 @@ MPIColls/code/.DS_Store
 MPIColls/code/Env/__pycache__/
 MPIColls/code/utils/__pycache__/
 MPIColls/code/PG/.DS_Store
-MPIColls/code/Env/self/__pycache__/self_reward.cpython-37.pyc
-MPIColls/code/Env/tLop/__pycache__/tLop_reward.cpython-37.pyc
+MPIColls/code/Env/self/__pycache__/
+MPIColls/code/Env/tLop/__pycache__/

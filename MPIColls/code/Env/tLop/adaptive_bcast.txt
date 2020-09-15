@@ -1,12 +1,25 @@
 # P
+8
 # root
+0
 # m
+512
 # S
+16384
 # M
+2
 # nodes
+[n0,n1]
 # mapping
+[0,0,0,0,1,1,1,1]
 # network
+IB
 # platform
+CIEMAT
 # Collective
+MPI_Bcast
 # Algorithm
+Binomial
+# n_iter
+1
 # Graph
