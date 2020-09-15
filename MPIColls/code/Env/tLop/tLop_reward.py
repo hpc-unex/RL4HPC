@@ -2,6 +2,23 @@ import numpy as np
 import subprocess
 
 
+def state_to_graph(s, P):
+
+	# Create a list of tuples (src, dst, depth) from the matrix representing
+	# the communication graph.
+	graph = []
+	for src in range(P):
+		for dst in range(P):
+			if s[src,dst] != 0:
+				graph.append((src, dst, s[src,dst]))
+
+	# Order list by "depth" value:
+	graph.sort(key=lambda v: v[2])
+
+	return graph
+
+
+
 def get_reward (s, params):
 
 	# Get benchmark parameters:
@@ -36,6 +53,9 @@ def get_reward (s, params):
 	cfile.write("# n_iter\n")
 	cfile.write(str(bench_p["n_iter"]) + "\n")
 	cfile.write("# Graph\n")
+	state_str = state_to_graph(s, params["P"])
+	graph_str = [str(x) for x in state_str]
+	cfile.write("[" + ','.join(graph_str) + "]\n")
 	cfile.close()
 
 	# Invoke process: only one argument, previous file.
