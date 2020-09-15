@@ -8,8 +8,8 @@
 		"verbosity_interval":  500,
 		"optimizer":           "Adam",
 		"NN": {
-			"type":			      "DNN",
-			"hidden":             [ 64 ]
+			"type":			            "DNN",
+			"hidden":               [ 64 ]
 		}
 	},
 
@@ -26,8 +26,12 @@
 		"verbosity_interval":  500,
 
 		"Benchmark": {
-			"exec":         		"",
-			"opts":         		""
+			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/bcast",
+			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/adaptive_bcast.txt",
+			"collective":       "MPI_Bcast",
+			"algorithm":        "Binomial",
+			"platform":         "CIEMAT",
+			"n_iter":           1
 		}
 	},
 

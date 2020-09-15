@@ -70,7 +70,7 @@ class MPICollsEnv(object):
 
 			if np.min(np.max(self.state, axis=0)) > 0:
 				done = True
-				reward = get_reward(self.state, self.M, self.P)
+				reward = get_reward(self.state, self.params)
 				# reward = -1 * get_reward_tlop (self.state, self.M, self.params)
 				# reward = -1 * get_reward_mpi (self.state, self.M, self.params, self.trajectory)
 				self.experience += 1
