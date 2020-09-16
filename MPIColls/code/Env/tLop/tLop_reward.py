@@ -29,7 +29,7 @@ def get_reward (s, params):
 	cfile = open(bench_p["opts"],"w+")
 	cfile.write("# P\n")
 	cfile.write(str(params["P"]) + "\n")
-	cfile.write("# root\n")
+	cfile.write("# Root\n")
 	cfile.write(str(params["root"]) + "\n")
 	cfile.write("# m\n")
 	cfile.write(str(params["m"]) + "\n")
@@ -37,14 +37,14 @@ def get_reward (s, params):
 	cfile.write(str(params["S"]) + "\n")
 	cfile.write("# M\n")
 	cfile.write(str(params["M"]) + "\n")
-	cfile.write("# nodes\n")
+	cfile.write("# Nodes\n")
 	cfile.write("[" + ','.join(params["nodes"]) + "]\n")
-	cfile.write("# mapping\n")
+	cfile.write("# Mapping\n")
 	mapping_str = [str(x) for x in params["mapping"]]
 	cfile.write("[" + ','.join(mapping_str) + "]\n")
-	cfile.write("# network\n")
+	cfile.write("# Network\n")
 	cfile.write(params["net"] + "\n")
-	cfile.write("# platform\n")
+	cfile.write("# Platform\n")
 	cfile.write(bench_p["platform"] + "\n")
 	cfile.write("# Collective\n")
 	cfile.write(bench_p["collective"] + "\n")
@@ -67,16 +67,10 @@ def get_reward (s, params):
 							universal_newlines=True
 							)
 
-	"""
-	output = proc.stdout
-	err    = proc.stderr
-
-	if (err != None):
-	print("ERR: ", err)
-	print("OUTPUT: ", output)
-	"""
 
 	# Output is time of execution:
+	# print("ERR: \n", proc.stderr)
+	# print("OUT: \n", proc.stdout)
 	time = float(proc.stdout)
 
 	# print("TIME: ", time)

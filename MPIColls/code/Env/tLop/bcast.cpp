@@ -14,22 +14,55 @@
 #include <unistd.h>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <map>
 using namespace std;
 
 
 // Algorithms and collectives supported
 typedef enum {BINOMIAL, LINEAR, ADAPTIVE} algorithms_t;
-
 map<string, const int> algorithms = {
 	{"Binomial",  BINOMIAL},
 	{"Linear",    LINEAR},
 	{"Adaptive",  ADAPTIVE}
 };
 
+typedef enum {NUM_PROCS,
+	            ROOT,
+							MSG_SIZE,
+							SEGMENT_SIZE,
+							NUM_NODES,
+							NODES,
+							MAPPING,
+							NETWORK,
+							PLATFORM,
+							COLLECTIVE,
+							ALGORITHM,
+							N_ITER,
+							GRAPH
+						} filecontent_t;
+
+map<string, const int> filecontent = {
+	{"# P",          NUM_PROCS},
+	{"# Root",       ROOT},
+	{"# m",          MSG_SIZE},
+	{"# S",          SEGMENT_SIZE},
+	{"# M",          NUM_NODES},
+	{"# Nodes",      NODES},
+	{"# Mapping",    MAPPING},
+	{"# Network",    NETWORK},
+	{"# Platform",   PLATFORM},
+	{"# Collective", COLLECTIVE},
+	{"# Algorithm",  ALGORITHM},
+	{"# n_iter",     N_ITER},
+	{"# Graph",      GRAPH}
+};
+
+
 // Parameters structure (to be read from file)
 struct params {
 	int      P;
+	int      root;
 	int      S;
 	int      m;
 	int      M;
@@ -38,21 +71,29 @@ struct params {
 	string   collective;
 	string   algorithm;
 	string   platform;
+	int     *mapping;
+	int      n_iter;
 };
 typedef struct params params;
 
 
-// Helper function to get nodes as a vector
-void str_to_vector (int P, int *nodes, string str) {
+
+// Helper function to get nodes/ranks as a vector
+void str_to_vector (int *vec, string str) {
 
 	std::stringstream ss(str);
 	int idx = 0;
 
-	for (int i; ss >> i;) {
-		nodes[idx] = i;
-		idx++;
-		if ((ss.peek() == ',') || (ss.peek() == ' '))
+	for (int i; ;) {
+		if ( (ss.peek() == ',') || (ss.peek() == ' ') ||
+		     (ss.peek() == '[') || (ss.peek() == ']')   ) {
 			ss.ignore();
+		} else {
+			if (!(ss >> i))
+			  break;
+			vec[idx] = i;
+			idx++;
+		}
 	}
 }
 
@@ -90,6 +131,7 @@ int main (int argc, char * argv[]) {
 
 	int    opt;
 	string bcast_file;
+	double t = 0.0;
 
 	/*
 	cerr << "Parameters: " << argc << endl;
@@ -116,29 +158,115 @@ int main (int argc, char * argv[]) {
 	}
 
   // TODO: read parameters from file
-	params pm;
-	pm.P = 8;
-	pm.m = 1024;
-	pm.net = "IB";
-	pm.collective = "MPI_Bcast";
-	pm.algorithm = "Binomial";
-	pm.platform = "CIEMAT";
-	pm.nodes = new int [pm.P];
-	for (int i = 0; i < pm.P; i++) {
-		pm.nodes[i] = 0;
+	if (bcast_file.empty()) {
+		cerr << "ERROR File not found: " << bcast_file << endl;
+		cout << t << endl;
+		return (-1);
 	}
+
+	ifstream bfile;
+  string str;
+	params pm;
+
+  bfile.open(bcast_file);
+	if (bfile.fail()) {
+		cerr << "ERROR openning file: " << bcast_file << endl;
+		cout << t << endl;
+		return (-1);
+	}
+
+	while (! bfile.eof()) {
+		getline(bfile, str);
+		if (bfile.eof())
+		  break;
+
+		switch(filecontent[str]) {
+			case NUM_PROCS:
+			  getline(bfile, str);
+				pm.P = stoi(str);
+			  break;
+			case ROOT:
+			  getline(bfile, str);
+				pm.root = stoi(str);
+			  break;
+			case MSG_SIZE:
+			  getline(bfile, str);
+				pm.m = stoi(str);
+				break;
+			case SEGMENT_SIZE:
+			  getline(bfile, str);
+				pm.S = stoi(str);
+			  break;
+			case NUM_NODES:
+			  getline(bfile, str);
+				pm.M = stoi(str);
+			  break;
+			case NODES:
+			  getline(bfile, str);
+				pm.nodes = new int [pm.M];
+				for (int i = 0; i < pm.M; i++) pm.nodes[i] = i;
+			  break;
+			case MAPPING:
+			  getline(bfile, str);
+				pm.mapping = new int [pm.P];
+				str_to_vector(pm.mapping, str);
+			  break;
+			case NETWORK:
+			  getline(bfile, str);
+				pm.net = str;
+			  break;
+			case PLATFORM:
+			  getline(bfile, str);
+				pm.platform = str;
+			  break;
+  		case COLLECTIVE:
+	  	  getline(bfile, str);
+				pm.collective = str;
+			  break;
+			case ALGORITHM:
+			  getline(bfile, str);
+				pm.algorithm = str;
+			  break;
+			case N_ITER:
+			  getline(bfile, str);
+				pm.n_iter = stoi(str);
+			  break;
+			case GRAPH:
+			  getline(bfile, str);
+				cerr << "Graph: " << str << endl;
+			  break;
+			default:
+			  cerr << "ERROR: unknown option in file " << str << endl;
+			  break;
+		}
+	}
+
+  bfile.close();
+
 
 	// Show parameters. Use only stderr because stdout is for sending the result.
 	cerr << "BCAST Options FILE    " << bcast_file    << endl;
 	cerr << "Number of processes:  " << pm.P          << endl;
+	cerr << "Root:                 " << pm.root       << endl;
+	cerr << "Number of nodes:      " << pm.M          << endl;
+	cerr << "Segment size:         " << pm.S          << endl;
 	cerr << "Message size:         " << pm.m          << endl;
 	cerr << "Network type:         " << pm.net        << endl;
 	cerr << "Collective operation: " << pm.collective << endl;
 	cerr << "Algorithm:            " << pm.algorithm  << endl;
 	cerr << "HPC platform:         " << pm.platform   << endl;
+	cerr << "Num. iterations:      " << pm.n_iter     << endl;
+	cerr << "Nodes:                "                  << endl;
+	for (int i = 0; i < pm.M; i++) {
+		cerr << " " << pm.nodes[i];
+	}
+	cerr << endl;
+	cerr << "Mapping:              "                  << endl;
+	for (int i = 0; i < pm.P; i++) {
+		cerr << " " << pm.mapping[i];
+	}
+	cerr << endl;
 
-
-	double t      = 0.0;
 
 	// Network parameters
 	TauLopParam::setInstance(pm.net.c_str());
@@ -146,11 +274,8 @@ int main (int argc, char * argv[]) {
 	// Communicator
 	Communicator *world = new Communicator (pm.P);
 
-	// Mapping (default: Sequential)
-	int *nodes = new int [pm.P];
-	// str_to_vector(pm.P, pm.nodes, M_str);
-
-	Mapping *map = new Mapping (pm.P, pm.nodes);
+  // Mapping
+	Mapping *map = new Mapping (pm.P, pm.mapping);
 	world->map(map);
 
 	switch (algorithms[pm.algorithm]) {
@@ -167,12 +292,12 @@ int main (int argc, char * argv[]) {
 	}
 
 	delete [] pm.nodes;
+	delete [] pm.mapping;
 	delete map;
 	delete world;
 
 	// Return value
 	cout << t << endl;
-	// cout << flush;
 
 	return 0;
 }

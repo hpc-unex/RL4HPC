@@ -1,6 +1,6 @@
 # P
 8
-# root
+# Root
 0
 # m
 512
@@ -8,13 +8,13 @@
 16384
 # M
 2
-# nodes
-[n0,n1]
-# mapping
+# Nodes
+[0,1]
+# Mapping
 [0,0,0,0,1,1,1,1]
-# network
+# Network
 IB
-# platform
+# Platform
 CIEMAT
 # Collective
 MPI_Bcast
@@ -23,4 +23,4 @@ Binomial
 # n_iter
 1
 # Graph
-[(0, 0, 1),(0, 5, 2),(0, 2, 3),(0, 4, 4),(2, 7, 4),(0, 6, 5),(7, 3, 5),(7, 1, 6)]
+[(0, 0, 1),(0, 1, 2),(0, 2, 3),(1, 5, 3),(0, 7, 4),(5, 3, 4),(7, 6, 5),(7, 4, 6)]
