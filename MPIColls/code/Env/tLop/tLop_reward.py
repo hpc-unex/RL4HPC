@@ -69,8 +69,8 @@ def get_reward (s, params):
 
 
 	# Output is time of execution:
-	# print("ERR: \n", proc.stderr)
-	# print("OUT: \n", proc.stdout)
+	print("ERR: \n", proc.stderr)
+	print("OUT: \n", proc.stdout)
 	time = float(proc.stdout)
 
 	# print("TIME: ", time)

@@ -20,11 +20,11 @@ using namespace std;
 
 
 // Algorithms and collectives supported
-typedef enum {BINOMIAL, LINEAR, ADAPTIVE} algorithms_t;
+typedef enum {BINOMIAL, LINEAR, GRAPH_BASED} algorithms_t;
 map<string, const int> algorithms = {
-	{"Binomial",  BINOMIAL},
-	{"Linear",    LINEAR},
-	{"Adaptive",  ADAPTIVE}
+	{"Binomial",     BINOMIAL},
+	{"Linear",       LINEAR},
+	{"Graph-Based",  GRAPH_BASED}
 };
 
 typedef enum {NUM_PROCS,
@@ -123,14 +123,15 @@ double binomial (int m, Communicator *w) {
 
 
 // Adaptive broadcast
-double adaptive (int m, Communicator *w) {
+double graph_based (int m, Communicator *w, Graph &g) {
 
-	cerr << "BCAST - Adaptive" << endl;
+	cerr << "BCAST - Graph based Collective" << endl;
 
-	Collective *bcast  = new BcastBinomial();
+	Collective *bcast  = new GraphCollective();
 	double t = 0.0;
 
 	int size = m;
+	bcast->setGraph(g);
 	TauLopCost *tcoll = bcast->evaluate(w, &size);
 	t = tcoll->getTime();
 
@@ -252,15 +253,15 @@ int main (int argc, char * argv[]) {
 			  break;
 			case GRAPH:
 			  getline(bfile, str);
-				cerr << "TBD: Graph (example): " << str << endl;
 				g.insert(0,0,1);
-				g.insert(0,1,2);
-				g.insert(0,2,3);
-				g.insert(1,3,3);
-				g.insert(0,4,4);
-				g.insert(1,5,4);
-				g.insert(2,6,4);
-				g.insert(3,7,4);
+				g.insert(0,3,2);
+				g.insert(0,5,3);
+				g.insert(3,4,3);
+				g.insert(3,6,4);
+				g.insert(5,1,4);
+				g.insert(6,2,5);
+				g.insert(0,7,5);
+				g.show();
 			  break;
 			default:
 			  cerr << "ERROR: unknown option in file " << str << endl;
@@ -307,12 +308,10 @@ int main (int argc, char * argv[]) {
 
 	switch (algorithms[pm.algorithm]) {
 		case BINOMIAL:
-		  cerr << "Here you have, the Binomial broadcast." << endl;
 			t = binomial(pm.m, world);
 			break;
-		case ADAPTIVE:
-		  t = adaptive(pm.m, world);
-			cerr << "I know you want to run an adaptive algorithm, but you must to WAIT." << endl;
+		case GRAPH_BASED:
+		  t = graph_based(pm.m, world, g);
 			break;
 		default:
 			cerr << "ERROR: collective " << pm.algorithm << " not supported." << endl;

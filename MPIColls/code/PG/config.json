@@ -30,7 +30,7 @@
 			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/bcast",
 			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/adaptive_bcast.txt",
 			"collective":       "MPI_Bcast",
-			"algorithm":        "Binomial",
+			"algorithm":        "Graph-Based",
 			"platform":         "CIEMAT",
 			"n_iter":           1
 		}
