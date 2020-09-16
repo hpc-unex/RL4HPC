@@ -122,6 +122,24 @@ double binomial (int m, Communicator *w) {
 }
 
 
+// Adaptive broadcast
+double adaptive (int m, Communicator *w) {
+
+	cerr << "BCAST - Adaptive" << endl;
+
+	Collective *bcast  = new BcastBinomial();
+	double t = 0.0;
+
+	int size = m;
+	TauLopCost *tcoll = bcast->evaluate(w, &size);
+	t = tcoll->getTime();
+
+	delete tcoll;
+
+	return t;
+}
+
+
 
 
 // Main:
@@ -132,6 +150,7 @@ int main (int argc, char * argv[]) {
 	int    opt;
 	string bcast_file;
 	double t = 0.0;
+	Graph  g;
 
 	/*
 	cerr << "Parameters: " << argc << endl;
@@ -233,7 +252,15 @@ int main (int argc, char * argv[]) {
 			  break;
 			case GRAPH:
 			  getline(bfile, str);
-				cerr << "Graph: " << str << endl;
+				cerr << "TBD: Graph (example): " << str << endl;
+				g.insert(0,0,1);
+				g.insert(0,1,2);
+				g.insert(0,2,3);
+				g.insert(1,3,3);
+				g.insert(0,4,4);
+				g.insert(1,5,4);
+				g.insert(2,6,4);
+				g.insert(3,7,4);
 			  break;
 			default:
 			  cerr << "ERROR: unknown option in file " << str << endl;
@@ -284,7 +311,7 @@ int main (int argc, char * argv[]) {
 			t = binomial(pm.m, world);
 			break;
 		case ADAPTIVE:
-		  t = binomial(pm.m, world);
+		  t = adaptive(pm.m, world);
 			cerr << "I know you want to run an adaptive algorithm, but you must to WAIT." << endl;
 			break;
 		default:
