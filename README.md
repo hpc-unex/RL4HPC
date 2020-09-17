@@ -5,7 +5,7 @@
 
 Clone repository: 
 
-> git clone https://github.com/hpc-unex/colls.git
+> git clone https://github.com/hpc-unex/RL4HPC.git
 
 
 
