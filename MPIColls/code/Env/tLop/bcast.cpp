@@ -292,7 +292,7 @@ int main (int argc, char * argv[]) {
   bfile.close();
 
 
-	// Show parameters. Use only stderr because stdout is for sending the result.
+	/* Show parameters. Use only stderr because stdout is for sending the result.
 	cerr << "BCAST Options FILE    " << bcast_file    << endl;
 	cerr << "Number of processes:  " << pm.P          << endl;
 	cerr << "Root:                 " << pm.root       << endl;
@@ -316,6 +316,7 @@ int main (int argc, char * argv[]) {
 	cerr << endl;
 	cerr << "Graph:                "                  << endl;
 	g.show();
+	*/
 
 
 	// Network parameters

@@ -176,8 +176,9 @@ class Agent(object):
 		agent.reset()
 		terminal = False
 		t = 0
+		t_reward = 0.0
 
-		print(s)
+		# print(s)
 
 		while not terminal:
 
@@ -187,10 +188,13 @@ class Agent(object):
 			s_, r, terminal, info = env.step(a)
 			s = np.copy(s_)
 
+			t_reward = t_reward + r
+
 			t = t + 1
 			if (t > self.P * 2):  # Error control
 				break
 
+		print(t_reward)
 		print(s_)
 		plot_graph(s_, "Monte Carlo Policy Gradients")
 

@@ -74,11 +74,12 @@ class MPICollsEnv(object):
 
 			if np.min(np.max(self.state, axis=0)) > 0:
 				done = True
-				reward = - math.sqrt(get_reward(self.state, self.params))
+				reward = - math.sqrt(get_reward(self.state, self.params)) 
 
 				if self.less_reward < reward:
 					self.less_reward = reward
-					print(reward)
+					# print(reward)
+					# print(self.state)
 					self.less_states.append(np.copy(self.state))
 
 				self.experience += 1
@@ -102,4 +103,4 @@ class MPICollsEnv(object):
 
 		if self.verbose and not (episode % self.verbosity_int):
 			print(self.state)
-			print(self.less_states[-1])
+			# print(self.less_states[-1])
