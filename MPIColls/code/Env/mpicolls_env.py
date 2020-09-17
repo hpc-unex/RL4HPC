@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import subprocess
 
 
@@ -32,6 +33,9 @@ class MPICollsEnv(object):
 		self.observation_space = self.P
 
 		self.experience = 0
+
+		self.less_states = []
+		self.less_reward = -np.inf
 
 
 
@@ -70,9 +74,13 @@ class MPICollsEnv(object):
 
 			if np.min(np.max(self.state, axis=0)) > 0:
 				done = True
-				reward = get_reward(self.state, self.params)
-				# reward = -1 * get_reward_tlop (self.state, self.M, self.params)
-				# reward = -1 * get_reward_mpi (self.state, self.M, self.params, self.trajectory)
+				reward = - math.sqrt(get_reward(self.state, self.params))
+
+				if self.less_reward < reward:
+					self.less_reward = reward
+					print(reward)
+					self.less_states.append(np.copy(self.state))
+
 				self.experience += 1
 
 		return np.array(self.state), reward, done, {"valid": valid}
@@ -94,3 +102,4 @@ class MPICollsEnv(object):
 
 		if self.verbose and not (episode % self.verbosity_int):
 			print(self.state)
+			print(self.less_states[-1])

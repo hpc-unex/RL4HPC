@@ -99,6 +99,36 @@ void str_to_vector (int *vec, string str) {
 
 
 
+// Helper function to get edges of the graph
+void str_to_graph (Graph &graph, string str) {
+
+	std::stringstream ss(str);
+	int   field = 0;
+	Edge  e;
+
+	for (int i; ;) {
+
+		if ( (ss.peek() == ',') || (ss.peek() == ' ') ||
+		     (ss.peek() == '(') || (ss.peek() == ')') ||
+		     (ss.peek() == '[') || (ss.peek() == ']')   ) {
+			ss.ignore();
+		} else {
+			if (!(ss >> i))
+			  break;
+			if      (field == 0)  e.src   = i;
+			else if (field == 1)  e.dst   = i;
+			else                  e.depth = i;
+
+			if (field == 2) {
+				graph.insert(e);
+		  }
+
+			field = (field + 1) % 3;
+		}
+	}
+}
+
+
 ///////////////////////////////////
 // Algorithms implementation.
 ///////////////////////////////////
@@ -142,7 +172,6 @@ double graph_based (int m, Communicator *w, Graph &g) {
 
 
 
-
 // Main:
 // DESC: read parameters from python generated file and call algorithm.
 // Return: (cout the time, then Python invoker captures the output)
@@ -159,7 +188,6 @@ int main (int argc, char * argv[]) {
 		cerr << argv[i] << endl;
 	}
 	*/
-
 
 	while((opt = getopt(argc, argv, "f:")) != -1)
 	{
@@ -253,15 +281,7 @@ int main (int argc, char * argv[]) {
 			  break;
 			case GRAPH:
 			  getline(bfile, str);
-				g.insert(0,0,1);
-				g.insert(0,3,2);
-				g.insert(0,5,3);
-				g.insert(3,4,3);
-				g.insert(3,6,4);
-				g.insert(5,1,4);
-				g.insert(6,2,5);
-				g.insert(0,7,5);
-				g.show();
+				str_to_graph(g, str);
 			  break;
 			default:
 			  cerr << "ERROR: unknown option in file " << str << endl;
@@ -294,6 +314,8 @@ int main (int argc, char * argv[]) {
 		cerr << " " << pm.mapping[i];
 	}
 	cerr << endl;
+	cerr << "Graph:                "                  << endl;
+	g.show();
 
 
 	// Network parameters
