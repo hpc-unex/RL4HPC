@@ -1,4 +1,5 @@
 .gitignore
+MPIColls/code/Env/self/__pycache__/self_reward.cpython-37.pyc
 MPIColls/code/Env/__pycache__ 
 MPIColls/code/Env/self/__pycache__ 
 MPIColls/code/utils/__pycache__ 

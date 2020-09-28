@@ -1,11 +1,31 @@
 import numpy as np
 import math
 import subprocess
+import sys
+sys.path.append('../utils')
+from graph  import plot_graph
 
 
-# from self.self_reward import get_reward
-from tLop.tLop_reward import get_reward
-# from .mpi.mpi_reward   import get_reward
+
+def get_reward (rw_type, state, params):
+
+	if rw_type == "self":
+		from self.self_reward import get_reward
+		r = get_reward(state, params)
+
+	elif rw_type == "tLop":
+		from tLop.tLop_reward import get_reward
+		r = math.sqrt(get_reward(state, params))
+
+	elif rw_type == "mpi":
+		from .mpi.mpi_reward import get_reward
+		r = 0.0
+
+	else:
+		r = 0.0
+
+	return r
+
 
 
 
@@ -23,6 +43,8 @@ class MPICollsEnv(object):
 
 		self.M = np.arange(0, self.params["M"], 1)
 
+		self.rw_type = self.params["reward_type"]
+
 		self.verbose       = params["verbose"]  # Verbosity
 		self.verbosity_int = params["verbosity_interval"]
 
@@ -32,17 +54,15 @@ class MPICollsEnv(object):
 		# STATES space
 		self.observation_space = self.P
 
-		self.experience = 0
-
-		self.less_states = []
-		self.less_reward = -np.inf
-
+		self.t = 0
 
 
 	# This function returns a reward that favors Linear Trees.
 	def step (self, action):
 
 		src, dst = action
+
+		self.t += 1
 
 		# Stage: last stage of sending/receiving of a process + 1:
 		stage = np.maximum( np.amax(self.state[src,:]), np.amax(self.state[:,src]) ) + 1
@@ -65,24 +85,15 @@ class MPICollsEnv(object):
 			valid = False
 
 		if (not valid):
-			reward = -1
-			# reward = 0.0
+			reward = -1.0
+
 		else: # valid == True
 			self.state[src,dst] = stage
 			reward = 0.0
-			# reward = 1
 
 			if np.min(np.max(self.state, axis=0)) > 0:
 				done = True
-				reward = - math.sqrt(get_reward(self.state, self.params)) 
-
-				if self.less_reward < reward:
-					self.less_reward = reward
-					# print(reward)
-					# print(self.state)
-					self.less_states.append(np.copy(self.state))
-
-				self.experience += 1
+				reward = get_reward(self.rw_type, self.state, self.params)
 
 		return np.array(self.state), reward, done, {"valid": valid}
 
@@ -93,7 +104,7 @@ class MPICollsEnv(object):
 		self.state = np.zeros((self.P, self.P), dtype=np.int)
 		self.state[self.root, self.root] = 1
 
-		self.experience = 0
+		self.t = 0
 
 		return np.copy(self.state)
 
@@ -103,4 +114,3 @@ class MPICollsEnv(object):
 
 		if self.verbose and not (episode % self.verbosity_int):
 			print(self.state)
-			# print(self.less_states[-1])

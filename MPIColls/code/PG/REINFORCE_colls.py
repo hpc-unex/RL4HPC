@@ -73,11 +73,13 @@ class Agent(object):
 
 		self.params = params
 
-		self.gamma         = params["gamma"]    # Almost Undiscounted
-		self.alpha         = params["alpha"]    # Learning rate (antes: 0.002)
+		self.gamma         = params["gamma"]       # Almost Undiscounted
+		self.alpha         = params["alpha"]       # Learning rate (antes: 0.002)
 		self.P             = params["P"]
 		self.n_episodes    = params["n_episodes"]
-		self.verbose       = params["verbose"]  # Verbosity
+		self.K             = params["K"]           # Num trajectory samples
+		self.baseline      = params["Baseline"]    # Baseline to use
+		self.verbose       = params["verbose"]     # Verbosity
 		self.verbosity_int = params["verbosity_interval"]
 
 		# Store loss and episode length evolution
@@ -90,6 +92,22 @@ class Agent(object):
 
 		self.optimizer = torch.optim.Adam(self.policyNN.parameters(),
 										  lr=self.alpha)
+
+
+	def __baseline(self, returns):
+
+		eps = np.finfo(np.float32).eps
+
+		if self.baseline == "Whitening":
+			advantage = (returns - returns.mean()) / (returns.std() + eps)
+		else:
+			advantage = returns
+
+		# Moving average:
+		# self.k = self.k + 1
+		# self.loss_mean = self.loss_mean + (prob_k - self.loss_mean) / self.k
+
+		return advantage
 
 
 	def reset(self):
@@ -136,16 +154,11 @@ class Agent(object):
 		T = len(self.saved_rewards)
 		returns = np.empty(T, dtype=np.float)
 
-		# Cummulative sum (G_t)
+		# Cummulative sum of rewards (G_t)
 		future_ret = 0
 		for t in reversed(range(T)):
 			future_ret = self.saved_rewards[t] + self.gamma * future_ret
 			returns[t] = future_ret
-
-
-		# TODO: rewards scaling and Baseline
-		eps = np.finfo(np.float32).eps
-		returns = (returns - returns.mean()) # / (returns.std() + eps)
 
 		return returns
 
@@ -159,7 +172,7 @@ class Agent(object):
 		# Compute log_probs:
 		logprob_tensor = torch.cat(self.saved_logprobs)
 
-		loss = -logprob_tensor * discounted_reward
+		loss = -logprob_tensor * (discounted_reward - self.__baseline(discounted_reward))
 		loss = torch.sum(loss)
 
 		# Update parameters
@@ -178,8 +191,6 @@ class Agent(object):
 		t = 0
 		t_reward = 0.0
 
-		# print(s)
-
 		while not terminal:
 
 			a = self.predict(s)
@@ -188,6 +199,7 @@ class Agent(object):
 			s_, r, terminal, info = env.step(a)
 			s = np.copy(s_)
 
+			print("r = ", r)
 			t_reward = t_reward + r
 
 			t = t + 1
@@ -315,7 +327,7 @@ for episode in range(agent.n_episodes):
 
 		s = np.copy(s_)
 
-	# Learn Policy
+	# Learn policy
 	J = agent.learn()
 
 	# Show partial results

@@ -3,10 +3,12 @@ import numpy as np
 
 def get_reward(s, params):
 
-	# Devuelve menos R cuando mas lineal es el arbol.
-	return np.max(np.max(s, axis=0))
+	# Return higher reward for a less deeper tree
 
-	# Devuelve el número de comunicationes locales (!"hops")
+	P = params["P"]
+	return (P - np.max(np.max(s, axis=0)))
+
+	# Return the number of local communications (!"hops")
 	"""
 	hops = 0
 	acc  = 0

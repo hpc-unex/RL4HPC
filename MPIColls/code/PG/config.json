@@ -1,28 +1,30 @@
 {
 	"Agent": {
-		"n_episodes":          20000,
+		"n_episodes":          50000,
 		"P":                   8,
-		"gamma":               1.0,
+		"gamma":               1.00,
 		"alpha":               0.001,
+		"K":                   20,
+		"Baseline":            "Whitening",
 		"verbose":             true,
 		"verbosity_interval":  500,
 		"optimizer":           "Adam",
 		"NN": {
-			"type":			            "DNN",
+			"type":			        "DNN",
 			"hidden":               [ 64 ]
 		}
 	},
 
 	"Environment": {
 		"P":                   8,
-		"m":                   512144,
+		"m":                   524288,
 		"M":                   2,
 		"S":                   16384,
 		"nodes":               ["0", "1"],
 		"mapping":             [0,0,0,0,1,1,1,1],
 		"net":                 "IB",
 		"root":                0,
-		"reward_type":         "self",
+		"reward_type":         "tLop",
 		"verbose":             true,
 		"verbosity_interval":  500,
 
