@@ -1,0 +1,26 @@
+# P
+8
+# Root
+0
+# m
+512144
+# S
+16384
+# M
+2
+# Nodes
+[0,1]
+# Mapping
+[0,0,0,0,1,1,1,1]
+# Network
+IB
+# Platform
+CIEMAT
+# Collective
+MPI_Bcast
+# Algorithm
+Graph-Based
+# n_iter
+1
+# Graph
+[(0, 0, 1),(0, 5, 2),(5, 2, 3),(2, 1, 4),(5, 6, 4),(5, 4, 5),(6, 3, 5),(6, 7, 6)]

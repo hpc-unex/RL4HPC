@@ -1,0 +1,47 @@
+{
+	"Agent": {
+		"n_episodes":          35000,
+		"P":                   5,
+		"gamma":               0.99,
+		"alpha":               0.001,
+		"verbose":             true,
+		"verbosity_interval":  500,
+		"optimizer":           "Adam",
+		"NN": {
+			"type":			            "DNN",
+			"hidden":               [ 64 ]
+		}
+	},
+
+	"Environment": {
+		"P":                   5,
+		"m":                   512144,
+		"M":                   2,
+		"S":                   16384,
+		"nodes":               ["0", "1"],
+		"mapping":             [0,0,1,1,0,1],
+		"net":                 "IB",
+		"root":                0,
+		"reward_type":         "self",
+		"verbose":             true,
+		"verbosity_interval":  500,
+
+		"Benchmark": {
+			"exec":         		"/home/adri/TFG/RL4HPC/MPIMap/code/Env/tLop/bcast",
+			"opts":         		"/home/adri/TFG/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+			"collective":       "MPI_Bcast",
+			"algorithm":        "Graph-Based",
+			"platform":         "CIEMAT",
+			"n_iter":           1
+		}
+	},
+
+	"I/O Data": {
+		"loss":         "./loss.txt",
+		"graph_file":   "./graph.txt",
+		"hosts_list":   "./hosts",
+		"hosts_file":   "./hosts_file",
+		"output_file":  "./output.txt",
+		"rank_file":    "./rank_file.txt"
+	}
+}
