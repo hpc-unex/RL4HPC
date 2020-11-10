@@ -83,10 +83,14 @@ def get_reward (s, params):
 	# Output is time of execution:
 	# print("ERR: \n", proc.stderr)
 	# print("OUT: \n", proc.stdout)
+<<<<<<< HEAD
 	try:
 		time = float(proc.stdout)
 	except ValueError:
 		print(proc.stdout)
 		time = 0.0
+=======
+	time = float(proc.stdout)
+>>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 
 	return time

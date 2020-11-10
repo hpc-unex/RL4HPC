@@ -1,5 +1,6 @@
 {
 	"Agent": {
+<<<<<<< HEAD
 		"n_episodes":          300000,
 		"P":                   16,
 		"gamma":               1.00,
@@ -12,25 +13,54 @@
 		"NN": {
 			"type":			        "DNN",
 			"hidden":               [ 512 ]
+=======
+		"n_episodes":          35000,
+		"P":                   5,
+		"gamma":               0.99,
+		"alpha":               0.001,
+		"verbose":             true,
+		"verbosity_interval":  500,
+		"optimizer":           "Adam",
+		"NN": {
+			"type":			            "DNN",
+			"hidden":               [ 64 ]
+>>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 		}
 	},
 
 	"Environment": {
+<<<<<<< HEAD
 		"P":                   16,
 		"m":                   524288,
 		"M":                   4,
 		"S":                   16384,
 		"nodes":               ["M0", "M1", "M2", "M3"],
 		"mapping":             [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3],
+=======
+		"P":                   5,
+		"m":                   512144,
+		"M":                   2,
+		"S":                   16384,
+		"nodes":               ["0", "1"],
+		"mapping":             [0,0,1,1,0,1],
+>>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 		"net":                 "IB",
 		"root":                0,
 		"reward_type":         "self",
 		"verbose":             true,
+<<<<<<< HEAD
 		"verbosity_interval":  1000,
 
 		"Benchmark": {
 			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/bcast",
 			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/adaptive_bcast.txt",
+=======
+		"verbosity_interval":  500,
+
+		"Benchmark": {
+			"exec":         		"/home/adri/TFG/RL4HPC/MPIMap/code/Env/tLop/bcast",
+			"opts":         		"/home/adri/TFG/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+>>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 			"collective":       "MPI_Bcast",
 			"algorithm":        "Graph-Based",
 			"platform":         "CIEMAT",
