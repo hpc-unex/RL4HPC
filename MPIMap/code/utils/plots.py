@@ -43,10 +43,11 @@ def plot_file (file_names, graph_file=None):
 	plt.title("Cost per Episode")
 	plt.xlabel('# Episode')
 	plt.ylabel('J')
-	plt.show()
 
 	if graph_file != None:
 		plt.savefig(graph_file, dpi=300)
+	else:
+		plt.show()
 
 
 

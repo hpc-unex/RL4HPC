@@ -1,6 +1,6 @@
 {
 	"Agent": {
-		"n_episodes":          100000,
+		"n_episodes":          2000000,
 		"P":                   16,
 		"M":                   4,
 		"gamma":               1.00,
@@ -19,7 +19,7 @@
 
 		"I/O Data": {
 			"loss":         "./loss.txt",
-			"graph_file":   "./graph_P16_M4.txt",
+			"graph_file":   "./graph_P16_M4.png",
 			"hosts_list":   "./hosts",
 			"hosts_file":   "./hosts_file",
 			"output_file":  "./output_P16_M4.txt",

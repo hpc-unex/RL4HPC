@@ -386,7 +386,7 @@ print("Wallclock time: ", end - start)
 
 # Outputs
 graph_file = params_iodata["graph_file"]
-plot_file (["./output_P16_M4_old.txt", output_file], graph_file=graph_file)
+plot_file (["./output_P16_M4.txt", "./output_P16_M8.txt"], graph_file=graph_file)
 
 
 # Example: predict a trajectory
