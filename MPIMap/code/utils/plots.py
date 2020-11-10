@@ -1,15 +1,11 @@
 import numpy  as np
-<<<<<<< HEAD
 import pandas as pd
-=======
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-<<<<<<< HEAD
 def plot_file (file_names, graph_file=None):
 
 	plt.figure(figsize=(12,8))
@@ -21,7 +17,6 @@ def plot_file (file_names, graph_file=None):
 			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=16, names=["episode", "J", "t", "T", "n_intra", "n_inter", "n_errors"])
 		except:
 			continue
-		# print(df[-100:])
 
 		j = df["J"].to_numpy()
 
@@ -57,9 +52,6 @@ def plot_file (file_names, graph_file=None):
 
 
 def plot_loss (J_history, title=None):
-=======
-def plot_loss (J_history):
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 
 	j = np.array(J_history)
 	#t = np.array(T_history)
@@ -107,11 +99,7 @@ def plot_loss (J_history):
 
 	plt.hlines(0, 0, X_AXIS, colors='r', linestyles='solid')
 
-<<<<<<< HEAD
 	plt.title(title)
-=======
-	plt.title("Cost function per Episode")
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 	plt.xlabel('# Episode')
 	plt.ylabel('J')
 	# plt.ylim(0)
