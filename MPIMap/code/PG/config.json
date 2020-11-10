@@ -1,0 +1,49 @@
+{
+	"Agent": {
+		"n_episodes":          300000,
+		"P":                   16,
+		"gamma":               1.00,
+		"alpha":               0.001,
+		"K":                   10,
+		"Baseline":            "Whitening",
+		"verbose":             true,
+		"verbosity_interval":  1000,
+		"optimizer":           "Adam",
+		"NN": {
+			"type":			        "DNN",
+			"hidden":               [ 512 ]
+		}
+	},
+
+	"Environment": {
+		"P":                   16,
+		"m":                   524288,
+		"M":                   4,
+		"S":                   16384,
+		"nodes":               ["M0", "M1", "M2", "M3"],
+		"mapping":             [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3],
+		"net":                 "IB",
+		"root":                0,
+		"reward_type":         "self",
+		"verbose":             true,
+		"verbosity_interval":  1000,
+
+		"Benchmark": {
+			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/bcast",
+			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIColls/code/Env/tLop/adaptive_bcast.txt",
+			"collective":       "MPI_Bcast",
+			"algorithm":        "Graph-Based",
+			"platform":         "CIEMAT",
+			"n_iter":           1
+		}
+	},
+
+	"I/O Data": {
+		"loss":         "./loss.txt",
+		"graph_file":   "./graph.txt",
+		"hosts_list":   "./hosts",
+		"hosts_file":   "./hosts_file",
+		"output_file":  "./output.txt",
+		"rank_file":    "./rank_file.txt"
+	}
+}

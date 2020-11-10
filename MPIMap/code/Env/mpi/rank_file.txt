@@ -1,0 +1,8 @@
+rank 0=daf01 slot=0-5
+rank 1=daf02 slot=0-5
+rank 2=daf01 slot=6-11
+rank 3=daf02 slot=6-11
+rank 4=daf01 slot=12-17
+rank 5=daf02 slot=12-17
+rank 6=daf01 slot=18-23
+rank 7=daf02 slot=18-23

@@ -1,0 +1,30 @@
+# P
+8
+# root
+0
+# m
+1024
+# S
+0
+# M
+2
+# nodes
+["n0","n1"]
+# mapping
+[0,0,0,0,1,1,1,1]
+# network
+IB
+# platform
+CIEMAT
+# Collective
+MPI_Bcast
+# Algorithm
+Binomial
+# Graph
+(0,1)
+(0,2)
+(0,3)
+(0,4)
+(0,5)
+(0,6)
+(0,7)
