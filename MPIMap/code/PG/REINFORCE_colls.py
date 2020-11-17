@@ -118,8 +118,8 @@ class Agent(object):
 
 		policy_params    = params["NN"]
 		self.policy = PolicyNetwork(policy_params,
-		                            self.P,        # Input
-									self.P,        # hidden
+		                            self.P * self.P * 2,        # Input
+									self.P * self.P * 2,        # hidden
 								    self.M)        # Output
 
 		self.policy.to(self.device)
@@ -172,8 +172,8 @@ class Agent(object):
 
 		actions = actions.argmax(dim=1)
 
-		# self.saved_logprobs.append(logprobs)
-		self.saved_logprobs = logprobs
+		self.saved_logprobs.append(logprobs)
+		# self.saved_logprobs = logprobs
 
 		self.t += 1
 
@@ -202,8 +202,8 @@ class Agent(object):
 		# print("[REINFORCE] discounted_reward: ", discounted_reward)
 
 		# Compute log_probs:
-		# logprob_tensor = torch.stack(self.saved_logprobs)
-		logprob_tensor = self.saved_logprobs
+		logprob_tensor = torch.stack(self.saved_logprobs)
+		# logprob_tensor = self.saved_logprobs
 		# print("[REINFORCE] logprob: ", logprob_tensor)
 
 		# Compute loss:
@@ -240,10 +240,10 @@ class Agent(object):
 
 			a = action_probs.argmax(dim=1)
 
-			s_, r, terminal, info = env.step(a)
+			s_, r, terminal, info = env.step(a, True)
 			s = s_
 
-		return a, action_probs
+		return a, action_probs, r
 
 
 	def render (self, J):
@@ -281,7 +281,6 @@ class Agent(object):
 				print("n_intra:    ", sum(self.n_intra[start:end]) / n)
 				print("n_inter:    ", sum(self.n_inter[start:end]) / n)
 				print("n_errors:   ", sum(self.n_errors[start:end]) / n)
-				print("\n")
 
 				if (costs.size > 0):
 					print("Loss (mean/std/max/min): ", costs.mean(), costs.std(), costs.max(), costs.min())
@@ -290,10 +289,11 @@ class Agent(object):
 					print("log probs:    ", self.saved_logprobs) #torch.stack(self.saved_logprobs).detach().numpy())
 
 					# Show a trajectory:
-					a, action_probs = self.predict_trajectory()
+					a, action_probs, r = self.predict_trajectory()
 					print("Probs:   ")
 					print(action_probs)
 					print("Actions: ", a)
+					print("Rewards: ", r)
 
 				print(flush=True)
 
@@ -382,11 +382,6 @@ for episode in range(agent.n_episodes):
 
 end = time.time()
 print("Wallclock time: ", end - start)
-
-
-# Outputs
-graph_file = params_iodata["graph_file"]
-plot_file (["./output_P16_M4.txt", "./output_P16_M8.txt"], graph_file=graph_file)
 
 
 # Example: predict a trajectory

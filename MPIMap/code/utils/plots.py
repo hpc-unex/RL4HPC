@@ -6,7 +6,7 @@ import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-def plot_file (file_names, graph_file=None):
+def plot_file (file_names, graph_file=None, show=False):
 
 	plt.figure(figsize=(12,8))
 	plt.axis('on')
@@ -44,7 +44,7 @@ def plot_file (file_names, graph_file=None):
 	plt.xlabel('# Episode')
 	plt.ylabel('J')
 
-	if graph_file != None:
+	if show == False:
 		plt.savefig(graph_file, dpi=300)
 	else:
 		plt.show()

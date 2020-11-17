@@ -19,7 +19,7 @@ def state_to_graph(s, P):
 
 
 
-def get_reward (s, params):
+def get_reward (s, a, params):
 
 	# Get benchmark parameters:
 	bench_p = params["Benchmark"]
@@ -46,7 +46,8 @@ def get_reward (s, params):
 	cfile.write("[" + ','.join(params["nodes"]) + "]\n")
 
 	cfile.write("# Mapping\n")
-	mapping_str = [str(x) for x in params["mapping"]]
+	# mapping_str = [str(x) for x in params["nodes_procs"]]
+	mapping_str = [str(x.item()) for x in a]
 	cfile.write("[" + ','.join(mapping_str) + "]\n")
 
 	cfile.write("# Network\n")
@@ -81,16 +82,12 @@ def get_reward (s, params):
 							)
 
 	# Output is time of execution:
-	# print("ERR: \n", proc.stderr)
-	# print("OUT: \n", proc.stdout)
-<<<<<<< HEAD
+	# print("ERR: \n", proc.stderr)
+	# print("OUT: \n", proc.stdout)
 	try:
 		time = float(proc.stdout)
 	except ValueError:
 		print(proc.stdout)
 		time = 0.0
-=======
-	time = float(proc.stdout)
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 
 	return time

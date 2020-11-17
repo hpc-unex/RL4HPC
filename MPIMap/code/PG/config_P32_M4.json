@@ -1,6 +1,6 @@
 {
 	"Agent": {
-		"n_episodes":          100000,
+		"n_episodes":          300000,
 		"P":                   32,
 		"M":                   4,
 		"gamma":               1.00,
@@ -19,10 +19,10 @@
 
 		"I/O Data": {
 			"loss":         "./loss.txt",
-			"graph_file":   "./graph.txt",
+			"graph_file":   "./graph_P32_M4.png",
 			"hosts_list":   "./hosts",
 			"hosts_file":   "./hosts_file",
-			"output_file":  "./output_P32_M2.txt",
+			"output_file":  "./output_P32_M4_i1.txt",
 			"rank_file":    "./rank_file.txt"
 		}
 	},
@@ -37,7 +37,7 @@
 		"net":                 "IB",
 		"root":                0,
 		"reward_type":         "self",
-		"ro":                  0.0001,
+		"ro":                  0.00005,
 		"c":                   1.0,
 		"state_rep":           "Simple",
 		"verbose":             false,

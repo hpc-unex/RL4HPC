@@ -1,6 +1,6 @@
 {
 	"Agent": {
-		"n_episodes":          2000000,
+		"n_episodes":          200000,
 		"P":                   16,
 		"M":                   8,
 		"gamma":               1.00,

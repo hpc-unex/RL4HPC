@@ -1,10 +1,10 @@
 {
 	"Agent": {
-		"n_episodes":          100000,
+		"n_episodes":          1000000,
 		"P":                   16,
 		"M":                   2,
 		"gamma":               1.00,
-		"alpha":               0.01,
+		"alpha":               0.0001,
 		"K":                   1,
 		"Baseline":            "None",
 		"verbose":             true,
@@ -19,7 +19,7 @@
 
 		"I/O Data": {
 			"loss":         "./loss.txt",
-			"graph_file":   "./graph.txt",
+			"graph_file":   "./graph_P16_M2.png",
 			"hosts_list":   "./hosts",
 			"hosts_file":   "./hosts_file",
 			"output_file":  "./output_P16_M2.txt",
@@ -37,9 +37,9 @@
 		"net":                 "IB",
 		"root":                0,
 		"reward_type":         "self",
-		"ro":                  0.0001,
+		"ro":                  0.000005,
 		"c":                   1.0,
-		"state_rep":           "Simple",
+		"state_rep":           "Adjacency",
 		"verbose":             false,
 		"verbosity_interval":  1000,
 

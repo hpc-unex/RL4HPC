@@ -7,16 +7,25 @@ from graph  import plot_graph
 
 
 
-def get_reward (rw_type, state, params):
+def get_reward (state, actions, params):
+
+	rw_type = params["reward_type"]
+
+	info = {"valid": True, "n_errors": 0, "n_intra": 0, "n_inter": 0}
 
 	if rw_type == "self":
 		from self.self_reward import get_reward
-		r = get_reward(state, params)
+		r, info = get_reward(state, actions, params)
 
 	elif rw_type == "tLop":
 		from tLop.tLop_reward import get_reward
 		# r = math.sqrt(get_reward(state, params))
-		r = get_reward(state, params)
+		r = get_reward(state, actions, params)
+
+		# TEMPORAL
+		info["n_errors"] = r
+		if (r > 999999):
+			info["valid"] = False
 
 	elif rw_type == "mpi":
 		from .mpi.mpi_reward import get_reward
@@ -25,7 +34,7 @@ def get_reward (rw_type, state, params):
 	else:
 		r = 0.0
 
-	return r
+	return r, info
 
 
 
@@ -66,74 +75,51 @@ class MPICollsEnv(object):
 		#  application and it is an input to this algorithm.
 		# TBD: read it from a file
 		comms = np.zeros((self.P, self.P), dtype=np.int)
-		comms[0,1] = 1
-		comms[1,3] = 1
-		comms[0,2] = 1
-		comms[0,4] = 1
-		comms[1,5] = 1
-		comms[2,6] = 1
-		comms[3,7] = 1
-		comms[0,8] = 1
-		comms[1,9] = 1
-		comms[2,10] = 1
-		comms[3,11] = 1
-		comms[4,12] = 1
-		comms[5,13] = 1
-		comms[6,14] = 1
-		comms[7,15] = 1
-		self.state = comms
+		comms[0,0] = 1
+		comms[0,1] = 2
+		comms[1,3] = 3
+		comms[0,2] = 3
+		comms[0,4] = 4
+		comms[1,5] = 4
+		comms[2,6] = 4
+		comms[3,7] = 4
+		comms[0,8] = 5
+		comms[1,9] = 5
+		comms[2,10] = 5
+		comms[3,11] = 5
+		comms[4,12] = 5
+		comms[5,13] = 5
+		comms[6,14] = 5
+		comms[7,15] = 5
+		self.comms = comms
+
+		self.baseline = 0.0
 
 
 
-	def step (self, actions):
+	def step (self, actions, show=False):
 
 		self.episode += 1
 
+		r, info = get_reward(self.comms, actions, self.params)
+
+		if info["valid"]:
+			self.baseline = self.baseline + (1.0 / self.episode) * (r - self.baseline)
+
+		if show:
+			print("Reward / baseline: ", r, self.baseline)
+
 		self.t  = len(actions)
 		rewards = np.zeros(self.t, dtype=np.float)
+		rewards[-1] = -(r - self.baseline)
 
-		valid  = True
-		r      = 0
-		done   = False
-
-		n_errors = 0
-		n_intra  = 0
-		n_inter  = 0
-
-		unique_elements, counts_elements = np.unique(actions, return_counts=True)
-		Q = self.P // self.M
-
-
-		counts_elements = counts_elements - Q
-		n_errors = (self.M - np.size(counts_elements)) * Q + np.sum(np.abs(counts_elements))
-		"""
-		nodes = np.zeros(self.M, dtype=np.int)
-		for i,a in enumerate(actions):
-			nodes[a] += 1
-			if (nodes[a] > Q):
-				n_errors += 1
-				rewards[i] = -1.0
-		"""
-
-		for src in range(0, self.P):
-			for dst in range(0, self.P):
-				if self.state[src,dst] != 0:
-					if actions[src] == actions[dst]:
-						n_intra += 1
-					else:
-						n_inter += 1
-
-
-		if n_errors > 0:
-			valid = False
-		else:
-			valid = True
-
-		rewards[-1] = -(self.ro * n_intra + (1 - self.ro) * n_inter + self.c * n_errors)
-
+		valid = True
 		done = True
 
-		return self.state, rewards, done, {"valid": valid, "n_errors": n_errors, "n_intra": n_intra, "n_inter": n_inter}
+		### TEMPORAL
+		info["n_inter"] = self.baseline
+
+		return self.state, rewards, done, info
 
 
 	def reset(self):
@@ -149,7 +135,7 @@ class MPICollsEnv(object):
 
 		s_rep = self.params["state_rep"]
 
-		if s_rep == "Simple":
+		if s_rep == "Adjacency":
 
 			# 0) By a simple matrix:
 
@@ -174,32 +160,34 @@ class MPICollsEnv(object):
 			comms = adj
 			comms = comms.reshape(self.P, -1)
 
-		elif s_rep == "Adjacency":
-
-			# 1) By Adjacency matrix:
-
-			# Open MPI Bcast  (16)
-			adj = np.zeros((self.P, self.P), dtype=np.int)
-			adj[0,1] = 1
-			adj[1,3] = 1
-			adj[0,2] = 1
-			adj[0,4] = 1
-			adj[1,5] = 1
-			adj[2,6] = 1
-			adj[3,7] = 1
-			adj[0,8] = 1
-			adj[1,9] = 1
-			adj[2,10] = 1
-			adj[3,11] = 1
-			adj[4,12] = 1
-			adj[5,13] = 1
-			adj[6,14] = 1
-			adj[7,15] = 1
-
-			comms = np.eye(2)[adj]
-			comms = comms.reshape(self.P, -1)
 
 		elif s_rep == "Layers":
+			# 2) Layers:
+
+			# Open MPI Bcast  (16)
+			comms_output = np.zeros((self.P, self.P), dtype=np.int)
+			comms_output[0,0] = 1
+			comms_output[0,1] = 2
+			comms_output[1,3] = 3
+			comms_output[0,2] = 3
+			comms_output[0,4] = 4
+			comms_output[1,5] = 4
+			comms_output[2,6] = 4
+			comms_output[3,7] = 4
+			comms_output[0,8] = 5
+			comms_output[1,9] = 5
+			comms_output[2,10] = 5
+			comms_output[3,11] = 5
+			comms_output[4,12] = 5
+			comms_output[5,13] = 5
+			comms_output[6,14] = 5
+			comms_output[7,15] = 5
+
+			comms = np.eye(self.P)[comms_output]
+			comms = comms.reshape(self.P, -1)
+
+
+		elif s_rep == "LayersIO":
 			# 2) Layers:
 
 			# Open MPI Bcast  (16)
@@ -239,8 +227,14 @@ class MPICollsEnv(object):
 			comms_input[14,6] = 5
 			comms_input[15,7] = 5
 
-			comms = np.eye(self.P)[comms_output]
-			comms = comms.reshape(self.P, -1)
+			comms_o = np.eye(self.P)[comms_output]
+			comms_o = comms_o.reshape(self.P, -1)
+
+			comms_i = np.eye(self.P)[comms_input]
+			comms_i = comms_i.reshape(self.P, -1)
+
+			comms = np.concatenate((comms_o, comms_i), axis = 1)
+
 
 		elif s_rep == "Edges":
 

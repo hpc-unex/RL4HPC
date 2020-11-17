@@ -28,19 +28,19 @@ map<string, const int> algorithms = {
 };
 
 typedef enum {NUM_PROCS,
-	            ROOT,
-							MSG_SIZE,
-							SEGMENT_SIZE,
-							NUM_NODES,
-							NODES,
-							MAPPING,
-							NETWORK,
-							PLATFORM,
-							COLLECTIVE,
-							ALGORITHM,
-							N_ITER,
-							GRAPH
-						} filecontent_t;
+              ROOT,
+              MSG_SIZE,
+              SEGMENT_SIZE,
+              NUM_NODES,
+              NODES,
+              MAPPING,
+              NETWORK,
+              PLATFORM,
+              COLLECTIVE,
+              ALGORITHM,
+              N_ITER,
+              GRAPH
+            } filecontent_t;
 
 map<string, const int> filecontent = {
 	{"# P",          NUM_PROCS},
@@ -75,6 +75,10 @@ struct params {
 	int      n_iter;
 };
 typedef struct params params;
+
+
+// Maximum time if not possible to run the algorithm
+const float MAX_TIME = 1000000.0;
 
 
 
@@ -159,7 +163,7 @@ double graph_based (int m, Communicator *w, Graph &g) {
 
 	Collective *bcast  = new GraphCollective();
 	double t = 0.0;
-
+    
 	int size = m;
 	bcast->setGraph(g);
 	TauLopCost *tcoll = bcast->evaluate(w, &size);
@@ -213,10 +217,10 @@ int main (int argc, char * argv[]) {
 	}
 
 	ifstream bfile;
-  string str;
+    string str;
 	params pm;
 
-  bfile.open(bcast_file);
+    bfile.open(bcast_file);
 	if (bfile.fail()) {
 		cerr << "ERROR openning file: " << bcast_file << endl;
 		cout << t << endl;
@@ -227,61 +231,61 @@ int main (int argc, char * argv[]) {
 		getline(bfile, str);
 		if (bfile.eof())
 		  break;
-
+        
 		switch(filecontent[str]) {
 			case NUM_PROCS:
 			  getline(bfile, str);
-				pm.P = stoi(str);
+              pm.P = stoi(str);
 			  break;
 			case ROOT:
 			  getline(bfile, str);
-				pm.root = stoi(str);
+              pm.root = stoi(str);
 			  break;
 			case MSG_SIZE:
 			  getline(bfile, str);
-				pm.m = stoi(str);
-				break;
+              pm.m = stoi(str);
+              break;
 			case SEGMENT_SIZE:
-			  getline(bfile, str);
-				pm.S = stoi(str);
+              getline(bfile, str);
+              pm.S = stoi(str);
 			  break;
 			case NUM_NODES:
 			  getline(bfile, str);
-				pm.M = stoi(str);
+              pm.M = stoi(str);
 			  break;
 			case NODES:
 			  getline(bfile, str);
-				pm.nodes = new int [pm.M];
-				for (int i = 0; i < pm.M; i++) pm.nodes[i] = i;
+              pm.nodes = new int [pm.M];
+              for (int i = 0; i < pm.M; i++) pm.nodes[i] = i;
 			  break;
 			case MAPPING:
 			  getline(bfile, str);
-				pm.mapping = new int [pm.P];
-				str_to_vector(pm.mapping, str);
+              pm.mapping = new int [pm.P];
+              str_to_vector(pm.mapping, str);
 			  break;
 			case NETWORK:
 			  getline(bfile, str);
-				pm.net = str;
+              pm.net = str;
 			  break;
 			case PLATFORM:
 			  getline(bfile, str);
-				pm.platform = str;
+              pm.platform = str;
 			  break;
-  		case COLLECTIVE:
-	  	  getline(bfile, str);
-				pm.collective = str;
+            case COLLECTIVE:
+              getline(bfile, str);
+              pm.collective = str;
 			  break;
 			case ALGORITHM:
 			  getline(bfile, str);
-				pm.algorithm = str;
+              pm.algorithm = str;
 			  break;
 			case N_ITER:
 			  getline(bfile, str);
-				pm.n_iter = stoi(str);
+              pm.n_iter = stoi(str);
 			  break;
 			case GRAPH:
 			  getline(bfile, str);
-				str_to_graph(g, str);
+              str_to_graph(g, str);
 			  break;
 			default:
 			  cerr << "ERROR: unknown option in file " << str << endl;
@@ -289,14 +293,10 @@ int main (int argc, char * argv[]) {
 		}
 	}
 
-  bfile.close();
+    bfile.close();
 
 
-<<<<<<< HEAD
 	/* Show parameters. Use only stderr because stdout is for sending the result.
-=======
-	// Show parameters. Use only stderr because stdout is for sending the result.
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 	cerr << "BCAST Options FILE    " << bcast_file    << endl;
 	cerr << "Number of processes:  " << pm.P          << endl;
 	cerr << "Root:                 " << pm.root       << endl;
@@ -313,17 +313,14 @@ int main (int argc, char * argv[]) {
 		cerr << " " << pm.nodes[i];
 	}
 	cerr << endl;
-	cerr << "Mapping:              "                  << endl;
+	cerr << "Node Procs.:              "              << endl;
 	for (int i = 0; i < pm.P; i++) {
 		cerr << " " << pm.mapping[i];
 	}
 	cerr << endl;
 	cerr << "Graph:                "                  << endl;
 	g.show();
-<<<<<<< HEAD
 	*/
-=======
->>>>>>> f80fa1da49810c0f077560a3c057db29f54156a5
 
 
 	// Network parameters
@@ -332,20 +329,43 @@ int main (int argc, char * argv[]) {
 	// Communicator
 	Communicator *world = new Communicator (pm.P);
 
-  // Mapping
+    // Node Procs.
 	Mapping *map = new Mapping (pm.P, pm.mapping);
 	world->map(map);
-
+    
+    
+    // Overcome capacity of nodes?
+    int capacity[] = {4, 4, 4, 4};
+    int req_capacity[pm.M];
+    for (int i = 0; i < pm.M; i++) req_capacity[i] = 0;
+    for (int i = 0; i < pm.P; i++) {
+        req_capacity[pm.mapping[i]] += 1;
+    }
+    int f = 1;
+    for (int i = 0; i < pm.M; i++) {
+        if (req_capacity[i] != capacity[i]) {
+            f += abs(req_capacity[i] - capacity[i]);
+            // t += f * MAX_TIME;
+        }
+    }
+    if (t >= MAX_TIME) {
+        cout << t << endl;
+        return 0;
+    }
+    
+    
+    // Algorithm
 	switch (algorithms[pm.algorithm]) {
 		case BINOMIAL:
 			t = binomial(pm.m, world);
 			break;
 		case GRAPH_BASED:
-		  t = graph_based(pm.m, world, g);
+		    t = graph_based(pm.m, world, g);
 			break;
 		default:
 			cerr << "ERROR: collective " << pm.algorithm << " not supported." << endl;
 	}
+    
 
 	delete [] pm.nodes;
 	delete [] pm.mapping;
@@ -353,7 +373,7 @@ int main (int argc, char * argv[]) {
 	delete world;
 
 	// Return value
-	cout << t << endl;
+	cout << t * f << endl;
 
 	return 0;
 }
