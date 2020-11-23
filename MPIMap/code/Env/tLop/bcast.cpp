@@ -78,7 +78,7 @@ typedef struct params params;
 
 
 // Maximum time if not possible to run the algorithm
-const float MAX_TIME = 1000000.0;
+// const float MAX_TIME = 1000000.0;
 
 
 
@@ -163,7 +163,7 @@ double graph_based (int m, Communicator *w, Graph &g) {
 
 	Collective *bcast  = new GraphCollective();
 	double t = 0.0;
-    
+
 	int size = m;
 	bcast->setGraph(g);
 	TauLopCost *tcoll = bcast->evaluate(w, &size);
@@ -231,7 +231,7 @@ int main (int argc, char * argv[]) {
 		getline(bfile, str);
 		if (bfile.eof())
 		  break;
-        
+
 		switch(filecontent[str]) {
 			case NUM_PROCS:
 			  getline(bfile, str);
@@ -332,9 +332,10 @@ int main (int argc, char * argv[]) {
     // Node Procs.
 	Mapping *map = new Mapping (pm.P, pm.mapping);
 	world->map(map);
-    
-    
+
+
     // Overcome capacity of nodes?
+    /*
     int capacity[] = {4, 4, 4, 4};
     int req_capacity[pm.M];
     for (int i = 0; i < pm.M; i++) req_capacity[i] = 0;
@@ -351,9 +352,9 @@ int main (int argc, char * argv[]) {
     if (t >= MAX_TIME) {
         cout << t << endl;
         return 0;
-    }
-    
-    
+    }*/
+
+
     // Algorithm
 	switch (algorithms[pm.algorithm]) {
 		case BINOMIAL:
@@ -365,7 +366,7 @@ int main (int argc, char * argv[]) {
 		default:
 			cerr << "ERROR: collective " << pm.algorithm << " not supported." << endl;
 	}
-    
+
 
 	delete [] pm.nodes;
 	delete [] pm.mapping;
@@ -373,7 +374,7 @@ int main (int argc, char * argv[]) {
 	delete world;
 
 	// Return value
-	cout << t * f << endl;
+	cout << t << endl;
 
 	return 0;
 }

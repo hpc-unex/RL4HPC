@@ -2,6 +2,26 @@ import numpy as np
 import subprocess
 
 
+MAX_TIME = 1000000.0
+
+# A simple class to maintain a moving average baseline
+class Baseline:
+
+	baseline = 0.0
+	episode  = 0
+
+	def update(r):
+		Baseline.episode += 1
+		Baseline.baseline = Baseline.baseline + (1.0 / Baseline.episode) * (r - Baseline.baseline)
+
+	def get():
+		return Baseline.baseline
+
+
+
+
+
+
 def state_to_graph(s, P):
 
 	# Create a list of tuples (src, dst, depth) from the matrix representing
@@ -72,6 +92,44 @@ def get_reward (s, a, params):
 
 	cfile.close()
 
+
+    # If capacity of nodes is overcome, return MAX_TIME
+	# That is, we do not accept oversubscripting.
+	"""
+    int capacity[] = {4, 4, 4, 4};
+    int req_capacity[pm.M];
+    for (int i = 0; i < pm.M; i++) req_capacity[i] = 0;
+    for (int i = 0; i < pm.P; i++) {
+        req_capacity[pm.mapping[i]] += 1;
+    }
+    int f = 1;
+    for (int i = 0; i < pm.M; i++) {
+        if (req_capacity[i] != capacity[i]) {
+            f += abs(req_capacity[i] - capacity[i]);
+            // t += f * MAX_TIME;
+        }
+    }
+    if (t >= MAX_TIME) {
+        cout << t << endl;
+        return 0;
+    }
+	"""
+
+	P = params["P"]
+	M = params["M"]
+	unique_elements, counts_elements = np.unique(a.to("cpu"), return_counts=True)
+	Q = P // M
+	counts_elements = counts_elements - Q
+	n_errors = (M - np.size(counts_elements)) * Q + np.sum(np.abs(counts_elements))
+	if n_errors > 0:
+		valid = False
+		time = n_errors * MAX_TIME
+		info = {"valid": valid, "reward": time, "baseline": Baseline.get()}
+
+		return time, info
+
+
+
 	# Invoke process: only one argument, previous file.
 	proc = subprocess.run([ bench_p["exec"],
 							"-f", bench_p["opts"] ],
@@ -84,10 +142,22 @@ def get_reward (s, a, params):
 	# Output is time of execution:
 	# print("ERR: \n", proc.stderr)
 	# print("OUT: \n", proc.stdout)
+
 	try:
+
 		time = float(proc.stdout)
+
+		time = time - Baseline.get()
+		valid = True
+
+		# update baseline
+		Baseline.update(time)
+
 	except ValueError:
 		print(proc.stdout)
 		time = 0.0
+		valid = False
 
-	return time
+
+	info = {"valid": valid, "reward": time, "baseline": Baseline.get()}
+	return time, info

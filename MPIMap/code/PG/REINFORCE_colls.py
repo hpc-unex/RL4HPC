@@ -54,6 +54,7 @@ class PolicyNetwork(nn.Module):
 			return
 
 		self.fc = nn.Linear(self.num_hidden, self.num_outputs)
+		torch.nn.init.xavier_normal_(self.fc.weight)
 
 
 	def forward(self, state, hidden):
@@ -66,13 +67,13 @@ class PolicyNetwork(nn.Module):
 		return logits
 
 
-	def init_state (self, batch_size=1, seq_len=1):
+	def init_state (self, agent, batch_size=1, seq_len=1):
 
 		if self.typecell == "GRU":
-			return ( torch.zeros(batch_size, seq_len, self.num_hidden) )
+			return ( torch.zeros(batch_size, seq_len, self.num_hidden).to(agent.device) )
 		elif self.typecell == "LSTM":
-			return ( torch.zeros(batch_size, seq_len, self.num_hidden),
-					 torch.zeros(batch_size, seq_len, self.num_hidden) )
+			return ( torch.zeros(batch_size, seq_len, self.num_hidden).to(agent.device),
+					 torch.zeros(batch_size, seq_len, self.num_hidden).to(agent.device) )
 
 		return None
 
@@ -112,17 +113,25 @@ class Agent(object):
 
 		# Policy network
 		if torch.cuda.is_available():
-			self.device = 'cuda'
+			self.device = torch.device('cuda')
 		else:
-			self.device = 'cpu'
+			self.device = torch.device('cpu')
 
 		policy_params    = params["NN"]
 		self.policy = PolicyNetwork(policy_params,
 		                            self.P * self.P * 2,        # Input
 									self.P * self.P * 2,        # hidden
-								    self.M)        # Output
+								    self.M         # Output
+									).to(self.device)
 
-		self.policy.to(self.device)
+		"""
+		for param in self.policy.parameters():
+			if len(param.shape) >= 2:
+				torch.nn.init.xavier_normal_(param.data)
+			else:
+				torch.nn.init.normal_(param.data)
+		"""
+
 
 		self.optimizer = torch.optim.Adam(self.policy.parameters(),
 		    						  	  lr=self.alpha)
@@ -132,9 +141,7 @@ class Agent(object):
 
 		# Policy network
 		self.policy.train()
-		self.hidden_tensor = self.policy.init_state(batch_size=1, seq_len=1)
-		self.hidden_tensor[0].to(self.device)
-		self.hidden_tensor[1].to(self.device)
+		self.hidden_tensor = self.policy.init_state(agent, batch_size=1, seq_len=1)
 
 		# Reset episode
 		self.saved_states   = []
@@ -154,13 +161,13 @@ class Agent(object):
 
 		self.saved_rewards = r
 
-		self.saved_info.append((info["n_errors"], info["n_intra"], info["n_inter"]))
+		self.saved_info.append(info)
 
 
 	def select_action (self, s):
 
 		# Transform into a Tensor
-		state_tensor = torch.FloatTensor([s])
+		state_tensor = torch.FloatTensor([s]).to(self.device)
 
 		# Policy: next action
 		action_probs = self.policy(state_tensor, self.hidden_tensor)
@@ -198,11 +205,11 @@ class Agent(object):
 	def learn (self):
 
 		# Compute discounted rewards (to Tensor):
-		discounted_reward = torch.FloatTensor(self.get_return())
+		discounted_reward = torch.FloatTensor(self.get_return()).to(self.device)
 		# print("[REINFORCE] discounted_reward: ", discounted_reward)
 
 		# Compute log_probs:
-		logprob_tensor = torch.stack(self.saved_logprobs)
+		logprob_tensor = torch.stack(self.saved_logprobs).to(self.device)
 		# logprob_tensor = self.saved_logprobs
 		# print("[REINFORCE] logprob: ", logprob_tensor)
 
@@ -232,7 +239,7 @@ class Agent(object):
 		while not terminal:
 
 			# Transform into a Tensor
-			state_tensor = torch.FloatTensor([s])
+			state_tensor = torch.FloatTensor([s]).to(self.device)
 
 			# Policy: next action
 			action_probs = self.policy(state_tensor, self.hidden_tensor)
@@ -249,8 +256,9 @@ class Agent(object):
 	def render (self, J):
 
 		# Output file:
-		n_errors, n_intra, n_inter = self.saved_info[-1]
-		self.o_file.write(str(self.episode) + " \t " + str(J.item()) + " \t " + str(time.time()) + " \t " + str(self.t) + " \t " + str(n_intra) + " \t " + str(n_inter) + " \t " + str(n_errors) + "\n")
+		baseline = self.saved_info[-1]["baseline"]
+		reward   = self.saved_info[-1]["reward"]
+		self.o_file.write(str(self.episode) + " \t " + str(J.item()) + " \t " + str(time.time()) + " \t " + str(self.t) + " \t " + str(reward) + " \t " + str(baseline) + "\n")
 		if self.episode == self.n_episodes:
 			self.o_file.close()
 
@@ -259,9 +267,6 @@ class Agent(object):
 
 		self.J_history.append(J.item())
 		self.T_history.append(len(self.saved_rewards))
-		self.n_errors.append(n_errors)
-		self.n_intra.append(n_intra)
-		self.n_inter.append(n_inter)
 
 		if self.verbose and not (self.episode % self.verbosity_int):
 
@@ -278,9 +283,7 @@ class Agent(object):
 				print("Loss:       ", sum(self.J_history[start:end]) / n)
 				print("Loss Acc:   ", sum(self.J_history) / len(self.J_history))
 				print("T:          ", sum(self.T_history[start:end]) / n)
-				print("n_intra:    ", sum(self.n_intra[start:end]) / n)
-				print("n_inter:    ", sum(self.n_inter[start:end]) / n)
-				print("n_errors:   ", sum(self.n_errors[start:end]) / n)
+				print("info:       ", self.saved_info[-1])
 
 				if (costs.size > 0):
 					print("Loss (mean/std/max/min): ", costs.mean(), costs.std(), costs.max(), costs.min())
@@ -320,13 +323,18 @@ def print_header (f, pagent, penv):
 	f.write("#StartTime: " + str(time.time()) + "\n")
 	f.write("# \n")
 
-	f.write("# e  \t  J  \t  t  \t  T  \t n_intra \t n_inter \t n_errors \n")
-	f.write("#--- \t --- \t --- \t --- \t ------- \t ------- \t -------- \n")
+	f.write("#  e   \t   J   \t  time  \t   T   \t reward \t baseline \n")
+	f.write("#----- \t ----- \t ------ \t ----- \t ------ \t -------- \n")
 
 
 
 
 ##########   MAIN   ##########
+
+# Set to GPU
+if torch.cuda.is_available():
+	print("Training model in GPUs ... ")
+	torch.cuda.set_device("cuda:0")
 
 # Read config/params from JSON file
 config = read_config()

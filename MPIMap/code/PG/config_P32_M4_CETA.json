@@ -1,7 +1,7 @@
 {
 	"Agent": {
-		"n_episodes":          200000,
-		"P":                   16,
+		"n_episodes":          100000,
+		"P":                   32,
 		"M":                   4,
 		"gamma":               1.00,
 		"alpha":               0.0001,
@@ -19,21 +19,21 @@
 
 		"I/O Data": {
 			"loss":         "./loss.txt",
-			"graph_file":   "./graph_P16_M4.png",
+			"graph_file":   "./graph_P32_M4.png",
 			"hosts_list":   "./hosts",
 			"hosts_file":   "./hosts_file",
-			"output_file":  "./output_P16_M4_tmp.txt",
+			"output_file":  "./output_P32_M4_r2.txt",
 			"rank_file":    "./rank_file.txt"
 		}
 	},
 
 	"Environment": {
-		"P":                   16,
+		"P":                   32,
 		"m":                   524288,
 		"M":                   4,
 		"S":                   16384,
 		"nodes":               ["M0", "M1", "M2", "M3"],
-		"nodes_procs":         [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3],
+		"nodes_procs":         [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3],
 		"net":                 "IB",
 		"root":                0,
 		"reward_type":         "tLop",
@@ -44,8 +44,8 @@
 		"verbosity_interval":  1000,
 
 		"Benchmark": {
-			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIMap/code/Env/tLop/bcast",
-			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+			"exec":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/bcast",
+			"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
 			"collective":       "MPI_Bcast",
 			"algorithm":        "Graph-Based",
 			"platform":         "CIEMAT",

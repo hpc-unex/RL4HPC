@@ -44,8 +44,8 @@
 		"verbosity_interval":  1000,
 
 		"Benchmark": {
-			"exec":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIMap/code/Env/tLop/bcast",
-			"opts":         		"/Users/jarico/Documents/Investigacion/Software/RL/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+			"exec":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/bcast",
+			"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
 			"collective":       "MPI_Bcast",
 			"algorithm":        "Graph-Based",
 			"platform":         "CIEMAT",

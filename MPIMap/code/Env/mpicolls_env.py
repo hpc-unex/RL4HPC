@@ -11,28 +11,22 @@ def get_reward (state, actions, params):
 
 	rw_type = params["reward_type"]
 
-	info = {"valid": True, "n_errors": 0, "n_intra": 0, "n_inter": 0}
-
 	if rw_type == "self":
 		from self.self_reward import get_reward
 		r, info = get_reward(state, actions, params)
 
 	elif rw_type == "tLop":
 		from tLop.tLop_reward import get_reward
-		# r = math.sqrt(get_reward(state, params))
-		r = get_reward(state, actions, params)
-
-		# TEMPORAL
-		info["n_errors"] = r
-		if (r > 999999):
-			info["valid"] = False
+		r, info = get_reward(state, actions, params)
 
 	elif rw_type == "mpi":
 		from .mpi.mpi_reward import get_reward
 		r = 0.0
+		info = {}
 
 	else:
 		r = 0.0
+		info = {}
 
 	return r, info
 
@@ -60,16 +54,10 @@ class MPICollsEnv(object):
 		self.action_space      = self.P
 		self.observation_space = self.P
 
-		self.t     = 0
-		self.valid = True
+		self.t = 0
 
 		self.ro = self.params["ro"]
 		self.c  = self.params["c"]
-
-		self.n_intra_history  = []
-		self.n_inter_history  = []
-		self.n_errors_history = []
-		self.episode = 0
 
 		# Communication matrix: It represents the communications of the
 		#  application and it is an input to this algorithm.
@@ -93,31 +81,19 @@ class MPICollsEnv(object):
 		comms[7,15] = 5
 		self.comms = comms
 
-		self.baseline = 0.0
-
 
 
 	def step (self, actions, show=False):
 
-		self.episode += 1
-
 		r, info = get_reward(self.comms, actions, self.params)
 
-		if info["valid"]:
-			self.baseline = self.baseline + (1.0 / self.episode) * (r - self.baseline)
-
-		if show:
-			print("Reward / baseline: ", r, self.baseline)
+		# self.baseline = self.baseline + (1.0 / self.episode) * (r - self.baseline)
 
 		self.t  = len(actions)
 		rewards = np.zeros(self.t, dtype=np.float)
-		rewards[-1] = -(r - self.baseline)
+		rewards[-1] = -r
 
-		valid = True
 		done = True
-
-		### TEMPORAL
-		info["n_inter"] = self.baseline
 
 		return self.state, rewards, done, info
 

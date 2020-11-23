@@ -1,30 +1,68 @@
 import numpy as np
 
 
+# A simple class to maintain a moving average baseline
+class Baseline:
+
+	baseline = 0.0
+	episode  = 0
+
+	def update(r):
+		Baseline.episode += 1
+		Baseline.baseline = Baseline.baseline + (1.0 / Baseline.episode) * (r - Baseline.baseline)
+
+	def get():
+		return Baseline.baseline
+
+
+
+
 def get_reward(state, actions, params):
 
+	# Baseline.episode += 1
 
 	P       = params["P"]
 	M       = params["M"]
-
-	valid  = True
-	r      = 0
-	done   = False
 
 	n_errors = 0
 	n_intra  = 0
 	n_inter  = 0
 
 	# ERRORS
-	unique_elements, counts_elements = np.unique(actions, return_counts=True)
+	unique_elements, counts_elements = np.unique(actions.to("cpu"), return_counts=True)
 	Q = P // M
-
-
 
 	counts_elements = counts_elements - Q
 	n_errors = (M - np.size(counts_elements)) * Q + np.sum(np.abs(counts_elements))
 
-	r = n_errors
+	# INTER-COMMUNICATIONS
+	for src in range(0, P):
+		for dst in range(0, P):
+			if state[src,dst] != 0:
+				if actions[src] != actions[dst]: # different node
+					n_inter += 1
+
+	r = (n_inter + n_errors) - Baseline.get()
+	# r = -(self.ro * n_intra + (1 - self.ro) * n_inter + self.c * n_errors)
+
+	if n_errors > 0:
+		valid = False
+	else:
+		valid = True
+
+	info = {"valid": valid, "reward": r, "baseline": Baseline.get()}
+
+	# update baseline
+	Baseline.update(r)
+
+
+	return r, info
+
+
+
+
+
+# OTRAS POSIBILIDADES:
 
 
 	"""
@@ -59,24 +97,3 @@ def get_reward(state, actions, params):
 					# elif n_elem_dst.item() > Q:
 					# 	n_errors += np.abs(n_elem_dst.item() - Q) * ccp
 	"""
-
-	if n_errors > 0:
-		valid = False
-	else:
-		valid = True
-
-
-	# INTER
-	for src in range(0, P):
-		for dst in range(0, P):
-			if state[src,dst] != 0:
-				if actions[src] != actions[dst]: # different node
-					n_inter += 1
-
-	r = n_inter + n_errors
-
-	# rewards[-1] = -(self.ro * n_intra + (1 - self.ro) * n_inter + self.c * n_errors)
-
-	info = {"valid": valid, "n_errors": n_errors, "n_intra": n_intra, "n_inter": n_inter}
-	
-	return r, info

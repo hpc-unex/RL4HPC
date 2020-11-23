@@ -35,12 +35,12 @@ def plot_file (file_names, graph_file=None, show=False):
 	for f_name in file_names:
 
 		try:
-			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=16, names=["episode", "J", "t", "T", "n_intra", "n_inter", "n_errors"])
+			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=16, names=["episode", "J", "t", "T", "reward", "baseline"])
 		except:
 			continue
 
 		### TEMPORAL
-		j = df["n_errors"].to_numpy() - df["n_inter"].to_numpy()
+		j = df["reward"].to_numpy()
 
 		# Reduce dimensionality
 		X_AXIS = 100
