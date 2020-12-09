@@ -2,7 +2,7 @@ import numpy as np
 import subprocess
 
 
-MAX_TIME = 1000000.0
+MAX_TIME = 1000.0
 
 # A simple class to maintain a moving average baseline
 class Baseline:
