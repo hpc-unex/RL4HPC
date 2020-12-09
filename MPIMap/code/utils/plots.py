@@ -14,7 +14,7 @@ def plot_file (file_names, graph_file=None, show=False):
 	for f_name in file_names:
 
 		try:
-			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=16, names=["episode", "J", "t", "T", "reward", "baseline"])
+			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=18, names=["episode", "J", "t", "T", "reward", "baseline", "actions"])
 		except:
 			continue
 

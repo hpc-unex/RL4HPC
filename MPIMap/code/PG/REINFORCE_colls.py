@@ -9,6 +9,7 @@
 import numpy  as np
 import decimal
 
+import os
 import sys
 sys.path.append('../Env')
 sys.path.append('../utils')
@@ -258,7 +259,9 @@ class Agent(object):
 		# Output file:
 		baseline = self.saved_info[-1]["baseline"]
 		reward   = self.saved_info[-1]["reward"]
-		self.o_file.write(str(self.episode) + " \t " + str(J.item()) + " \t " + str(time.time()) + " \t " + str(self.t) + " \t " + str(reward) + " \t " + str(baseline) + "\n")
+		# self.o_file.write(str(self.episode) + " \t " + str(J.item()) + " \t " + str(time.time()) + " \t " + str(self.t) + " \t " + str(reward) + " \t " + str(baseline) + " \t " + str(self.saved_actions) + "\n")
+		self.o_file.write(str(self.episode) + " \t " + str(J.item()) + " \t " + str(time.time()) + " \t " + str(self.t) + " \t " + str(reward) + " \t " + str(baseline) + " \t " + str(0) + "\n")
+		self.o_file.flush()
 		if self.episode == self.n_episodes:
 			self.o_file.close()
 
@@ -321,10 +324,15 @@ def print_header (f, pagent, penv):
 	f.write("#Reward_type: " + str(penv["reward_type"]) + "\n")
 	f.write("#StateRep: " + str(penv["state_rep"]) + "\n")
 	f.write("#StartTime: " + str(time.time()) + "\n")
+
+	slurm = "slurm-" + os.environ['SLURM_JOB_ID'] + ".txt"
+	f.write("#slurm file: " + str(slurm) + "\n")
+	f.write("#node list: " + str(os.environ['SLURM_NODELIST']) + "\n")
+
 	f.write("# \n")
 
-	f.write("#  e   \t   J   \t  time  \t   T   \t reward \t baseline \n")
-	f.write("#----- \t ----- \t ------ \t ----- \t ------ \t -------- \n")
+	f.write("#  e   \t   J   \t  time  \t   T   \t reward \t baseline \t Actions \n")
+	f.write("#----- \t ----- \t ------ \t ----- \t ------ \t -------- \t ------- \n")
 
 
 

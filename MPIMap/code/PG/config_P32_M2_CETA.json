@@ -1,6 +1,6 @@
 {
 	"Agent": {
-		"n_episodes":          200000,
+		"n_episodes":          100000,
 		"P":                   32,
 		"M":                   2,
 		"gamma":               1.00,
@@ -22,7 +22,7 @@
 			"graph_file":   "./graph_P32_M2.png",
 			"hosts_list":   "./hosts",
 			"hosts_file":   "./hosts_file",
-			"output_file":  "./output_P32_M2_r2.txt",
+			"output_file":  "./output_P32_M2_r2_CETA.txt",
 			"rank_file":    "./rank_file.txt"
 		}
 	},
