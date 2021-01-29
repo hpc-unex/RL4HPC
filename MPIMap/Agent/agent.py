@@ -42,6 +42,11 @@ class Agent(object):
 		self.comms    = adjacency(self.P, self.graph["comms"])
 		self.capacity = torch.tensor(self.graph["capacity"], dtype=torch.long).detach()
 
+		# print("[Agent] Comms:")
+		# print(self.comms)
+		# print("[Agent] Capacity:")
+		# print(self.capacity)
+
 		# Configuration parameters
 		self.config        = params["Config"]
 		self.rw_type       = self.config["reward_type"]

@@ -161,6 +161,18 @@ class MPIMapEnv(object):
 
 	def reset(self):
 
+
+		self.state = np.copy(self.comms)
+		self.state[self.state > 0] = 1
+
+		# print("[Env - reset()]: ")
+		# print(self.state)
+
+		self.t = 0
+		self.valid = False
+
+		return self.state
+
 		#######################
 		# Different forms of representing
 		# a state (with one-hot enconding):
@@ -170,6 +182,8 @@ class MPIMapEnv(object):
 		# 3) By a list of communication between ranks
 		#######################
 
+
+		""" LayersIO
 
 		comms_output = np.zeros((self.P, self.P), dtype=np.int)
 		comms_output[0,0] = 1
@@ -207,6 +221,7 @@ class MPIMapEnv(object):
 		self.valid = False
 
 		return self.state
+		"""
 
 
 		# s_rep = self.params["state_rep"]

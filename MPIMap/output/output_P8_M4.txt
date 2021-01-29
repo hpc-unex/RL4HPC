@@ -1,0 +1,16 @@
+#P: 8
+#M: 4
+#alpha: 0.001
+#gamma: 1.0
+#n_episodes: 100000
+#K: 1
+#Baseline: None
+#Node names: ['M0', 'M1', 'M2', 'M3']
+#Reward_type: self
+#StartTime: 1611923252.7642272
+#slurm file: 0
+#node list: local
+# 
+#  e   	   J   	  time  	   T   	 reward 	 baseline 	 Actions 
+#----- 	 ----- 	 ------ 	 ----- 	 ------ 	 -------- 	 ------- 
+1 	 nan 	 1611923252.7859251 	 8 	 6815744.0 	 0.0 	 [1, 2, 3, 0, 3, 2, 0, 1]

@@ -114,7 +114,9 @@ class Decoder(nn.Module):
 	def forward(self, state, hidden, enc_outputs):
 		#Para hacer el embedding es necesario, pasar el tensor de float a long
 
-		# print("    [state]: ", state.size())
+		# print("[Decoder] state:  ", state.size())
+		# print("[Decoder] hidden: ", hidden[0].size())
+		# print("[Decoder] output: ", enc_outputs.size())
 		# state = state.long()
 		# state = state.squeeze(0)
 		# print("    [state]: ", state.size())
@@ -131,35 +133,40 @@ class Decoder(nn.Module):
 		'''El hidden del LSTM lo creamos como una lista de tensores en el constructor
 		Lo apilamos en un solo tensor y obtenemos la primera correspondiente al hidden con h[0]
 		'''
+
+		# print("[Decoder] hidden: ", hidden[0])
+
 		h = torch.stack(hidden, dim=1).squeeze(0)
-		# print("    [h]:         ", h.size())
 
 		# print("    [cat]:       ", embedded[0].size(), h[0].size(), torch.cat((embedded[0],h[0]),1).size())
-		# print("    [cat]:       ", state[0].size(), h[0].size(), torch.cat((state[0],h[0]),1).size())
+		# print("    [cat]:       ", state[0].size(), h[0].size(), torch.cat((state[0],h[0]),1).size())
 
 		# attn_weights = F.softmax(self.attn(torch.cat((embedded[0],h[0]),1)),dim=1)
 		attn_weights = F.softmax(self.attn(torch.cat((state[0],h[0]),1)),dim=1)
 		# print("    [attn_weigths]: ", attn_weights.size())
+		# print("    [attn_weigths]: ", attn_weights)
 		# print("    [enc_outputs]:  ", enc_outputs.size())
 
-		attn_applied = torch.bmm(attn_weights.unsqueeze(0),enc_outputs)
-		# print("    [attn_applied]: ", attn_applied.size())
+		# print("    [attn_weigths]: ", attn_weights.size(), enc_outputs.size())
+		attn_applied = torch.bmm(attn_weights.unsqueeze(0), enc_outputs)
+		# print("    [attn_applied]: ", attn_applied.size())
 
 		# output = torch.cat((embedded[0], attn_applied[0]),1)
 		output = torch.cat((state[0], attn_applied[0]),1)
-		# print("    [cat]:       ", output.size())
+		# print("    [cat]:       ", output.size())
 
 		output = self.attn_combine(output).unsqueeze(0)
 		# print("    [output]:       ", output.size())
 		output = F.relu(output)
 		# print("    [output]:       ", output.size())
 
-		# print("    [cell]:       ", output.size(), hidden[0].size())
-		output, hidden = self.cell(output,hidden)
+		# print("    [cell] in:        ", output.size(), hidden[0].size())
+		output, hidden = self.cell(output, hidden)
+		# print("    [cell] out:       ", output.size(), hidden[0].size())
 		#No he hecho la capa log_softmax, porque tiende a poner todos los resultados a 0
 		logits = self.fc(output)
 
-		# print("    [logits]:     ", logits.size())
+		# print("    [logits]:     ", logits.size())
 		# print("    [hidden]:     ", hidden[0].size())
 		return  logits, hidden
 
@@ -181,10 +188,10 @@ class PolicyNetwork(nn.Module):
 		self.policy_params = params["Policy"]
 		self.typecell = self.policy_params["typecell"]
 
-		self.num_inputs  = self.P * self.P * 2
-		self.num_outputs = self.M
-		self.num_hidden  = self.P * self.P * 2
-
+		# TODO: temporal parameter reading (hard-coded)
+		self.num_inputs  = self.policy_params["n_inputs"]
+		self.num_outputs = self.policy_params["n_outputs"]
+		self.num_hidden  = self.policy_params["n_hidden"]
 
 		# Optimization on GPUs
 		if torch.cuda.is_available():
@@ -192,20 +199,17 @@ class PolicyNetwork(nn.Module):
 		else:
 			self.device = torch.device('cpu')
 
-
+		# Encoder and decoder creation.
 		self.encoder = Encoder(params,
-		self.num_inputs,
-		self.num_hidden
-		).to(self.device)
+								self.num_inputs,
+								self.num_hidden
+							  ).to(self.device)
 
 		self.decoder = Decoder(params,
-		self.M,                     #input (???)
-		self.num_hidden,
-		self.num_outputs                #Output (??? max_length?)
-		).to(self.device)
-
-		# assert encoder.num_hidden == decoder.num_hidden, \
-		#     "Hidden dimensions of encoder and decoder must be equal!"
+								self.M,            #input (???)
+								self.num_hidden,
+								self.num_outputs   #Output (??? max_length?)
+							  ).to(self.device)
 
 
 	def forward(self, state):
@@ -215,10 +219,12 @@ class PolicyNetwork(nn.Module):
 		input = torch.zeros(1,1,self.M)
 		#Connect encoder hidden with the decoder hidden
 
-		# print("[Policy] state:  ", state.size())
-		# print("[Policy] hidden: ", self.hidden[0].size())
-
+		# print("[Policy] state:  ", state, state.size())
+		# print("[Policy] hidden: ", self.hidden[0], self.hidden[0].size())
 		encoder_output, encoder_hidden = self.encoder(state, self.hidden)
+
+		# print("[Policy] output (out): ", encoder_output, encoder_output.size())
+		# print("[Policy] hidden (out): ", encoder_hidden[0], encoder_hidden[0].size())
 
 		flag=False
 

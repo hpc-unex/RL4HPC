@@ -23,7 +23,7 @@
 
 	"Hyperparameters": {
 		"n_episodes":          100000,
-		"gamma":               0.95,
+		"gamma":               1.00,
 		"alpha":               0.001,
 		"K":                   1
 	},
@@ -31,7 +31,10 @@
 	"Policy": {
 		"type":			         "RNN",
 		"optimizer":         "Adam",
-		"typecell":          "LSTM"
+		"typecell":          "LSTM",
+		"n_inputs":          8,
+		"n_outputs":         4,
+		"n_hidden":          8
 	},
 
 	"Output": {
