@@ -16,10 +16,14 @@ def plot_file (file_names, graph_file=None, show=False):
 
 	for f_name in file_names:
 
+		# print("Fichero: ", f_name)
+
 		try:
-			df = pd.read_csv(f_name, index_col=0, delimiter="\t", skiprows=15, names=["episode", "J", "t", "T", "reward", "baseline", "actions"])
+			df = pd.read_csv(f_name, index_col=0, delimiter="#", skiprows=15, names=["episode", "J", "t", "T", "reward", "baseline", "actions"])
 		except:
 			continue
+
+		# print(df)
 
 		j = df["J"].to_numpy()
 

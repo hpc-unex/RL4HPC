@@ -156,6 +156,9 @@ class MPIMapEnv(object):
 
 		done = True
 
+		# print("[Env] state: ", self.state)
+		# print("[Env] rewards: ", rewards)
+
 		return self.state, rewards, done, info
 
 

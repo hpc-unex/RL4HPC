@@ -219,7 +219,7 @@ class PolicyNetwork(nn.Module):
 		input = torch.zeros(1,1,self.M)
 		#Connect encoder hidden with the decoder hidden
 
-		# print("[Policy] state:  ", state, state.size())
+		# print("[Policy] state:  ", state, state.size())
 		# print("[Policy] hidden: ", self.hidden[0], self.hidden[0].size())
 		encoder_output, encoder_hidden = self.encoder(state, self.hidden)
 
@@ -233,7 +233,7 @@ class PolicyNetwork(nn.Module):
 			# print("DECODER (in):  ", x, input.size(), encoder_hidden[0].size(), encoder_output.size())
 			output, encoder_hidden = self.decoder(input, encoder_hidden, encoder_output)
 
-			# print("DECODER (out): ", x, output.size(), encoder_hidden[0].size())
+			# print("DECODER (out): ", x, output.size(), encoder_hidden[0].size())
 
 			#Sólo asignamos una vez para que no se sobreescriban los datos siguientes
 			if(flag==False):
@@ -242,11 +242,12 @@ class PolicyNetwork(nn.Module):
 
 			else:
 				#Concatenamos los resultados para los distintos procesos
-				outputs = torch.cat((outputs,output), 0)
+				outputs = torch.cat((outputs,output), 1)
 
 			input = output
 			#Utilizamos la salida como siguiente entrada
 
+		# print("[Policy] outputs: ", outputs, outputs.size())
 		return outputs
 
 

@@ -160,12 +160,12 @@ class Output(object):
 		baseline  = info["Baseline"]
 		actions   = info["Actions"]
 
-		self.f.write(str(n_episode)   + " \t " +
-					 str(J)           + " \t " +
-					 str(time.time()) + " \t " +
-					 str(T)           + " \t " +
-					 str(reward)      + " \t " +
-					 str(baseline)    + " \t " +
+		self.f.write(str(n_episode)   + " # " +
+					 str(J)           + " # " +
+					 str(time.time()) + " # " +
+					 str(T)           + " # " +
+					 str(reward)      + " # " +
+					 str(baseline)    + " # " +
 					 str(actions)     + "\n")
 
 		self.f.flush()

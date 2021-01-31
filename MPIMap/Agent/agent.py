@@ -127,19 +127,27 @@ class Agent(object):
 		action_probs = self.policy(state_tensor)
 		action_probs = action_probs.view(self.P, -1)
 
+		
 		# Using "masking" of action probabilities
 		# Set action_probs to -torch.inf for nodes full
 		capacity = self.capacity.clone().detach()
 		actions = torch.zeros(self.P, dtype=torch.long)
 		logprobs = torch.FloatTensor(self.P)
 
+
+		# print("[select_action] action_probs: ", action_probs, action_probs.size())
+		idx = torch.arange(self.M, dtype=torch.long).to(self.device)
 		for i in range(0, self.P):
-			idx = torch.arange(self.M, dtype=torch.long).to(self.device)
 			p = torch.gather(action_probs[i], 0, idx).to(self.device)
+
+			# print("[select_action] idx: ", idx)
+			# print("[select_action] p:   ", p)
 
 			for k in range(0, self.M):
 				if capacity[k] == 0:
 					p[k] = -np.inf
+
+			# print("[select_action] p:   ", p)
 
 			a_dist = Categorical(logits=p)
 			a = a_dist.sample()
@@ -149,6 +157,8 @@ class Agent(object):
 			capacity[a] -= 1
 
 			self.t += 1
+
+			# print("[select_action] actions:   ", actions)
 
 
 		# Using a Multinomial distribution:
@@ -183,7 +193,7 @@ class Agent(object):
 			future_ret = rewards[t] + self.gamma * future_ret
 			returns[t] = future_ret
 
-		returns = (returns - returns.mean()) / returns.std()
+		# returns = (returns - returns.mean()) / returns.std()
 
 		return returns
 
