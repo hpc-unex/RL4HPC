@@ -6,7 +6,7 @@ import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout
 
 
-def plot_file (file_names, graph_file=None, show=False):
+def plot_file (file_names, sdata, graph_file=None, show=False):
 
 	plt.figure(figsize=(12,8))
 	plt.axis('on')
@@ -25,7 +25,13 @@ def plot_file (file_names, graph_file=None, show=False):
 
 		# print(df)
 
-		j = df["J"].to_numpy()
+		if sdata == "cost":
+			j = df["J"].to_numpy()
+		elif sdata == "reward":
+			j = df["reward"].to_numpy()
+		else:
+			print("ERROR: in data to plot")
+			return
 
 		j = j.reshape((X_AXIS, -1))
 
@@ -44,9 +50,15 @@ def plot_file (file_names, graph_file=None, show=False):
 	plt.hlines(0, 0, X_AXIS, colors='r', linestyles='dashed')
 
 	plt.legend(labels=file_names)
-	plt.title("Cost per Episode")
-	plt.xlabel('# Episode')
-	plt.ylabel('J')
+	if sdata == "cost":
+		plt.title("Cost per Episode")
+		plt.xlabel('# Episode')
+		plt.ylabel('J')
+	elif sdata == "reward":
+		plt.title("Reward per Episode")
+		plt.xlabel('# Episode')
+		plt.ylabel('Reward')
+
 
 	if show == False:
 		plt.savefig(graph_file, dpi=300)

@@ -35,4 +35,4 @@ input_files  = sys.argv[2:]
 print(output_graph)
 print(input_files)
 
-plot_file (input_files, graph_file=output_graph)
+plot_file (input_files, "cost", graph_file=output_graph)
