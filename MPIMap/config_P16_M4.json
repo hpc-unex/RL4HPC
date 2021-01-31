@@ -1,0 +1,53 @@
+{
+	"Graph": {
+		"P":                   16,
+		"M":                   4,
+		"m":                   65536,
+		"S":                   16384,
+		"root":                0,
+		"node_names":          ["M0", "M1", "M2", "M3"],
+		"capacity":            [   4,    4,    4,    4],
+		"net":                 "IB",
+		"comms": {
+			"edges":             [[0, 1], [0, 2], [1, 3], [0, 4], [1, 5], [2, 6], [3, 7], [0, 8], [1, 9], [2, 10], [3, 11], [4, 12], [5, 13], [6, 14], [7, 15]],
+			"m":                 [65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536, 65536]
+		}
+	},
+
+	"Config": {
+		"reward_type":         "self",
+		"Baseline":            "None",
+		"verbose":             true,
+		"verbosity_interval":  1000
+	},
+
+	"Hyperparameters": {
+		"n_episodes":          400000,
+		"gamma":               0.95,
+		"alpha":               0.001,
+		"K":                   1
+	},
+
+	"Policy": {
+		"type":			         "RNN",
+		"optimizer":         "Adam",
+		"typecell":          "LSTM",
+		"n_inputs":          16,
+		"n_outputs":         4,
+		"n_hidden":          32
+	},
+
+	"Output": {
+		"graph_file":          "./output/graph_P16_M4.png",
+		"output_file":         "./output/output_P16_M4.txt"
+	},
+
+	"Benchmark": {
+		"exec":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/bcast",
+		"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast_16_4.txt",
+		"collective":       "MPI_Bcast",
+		"algorithm":        "Graph-Based",
+		"platform":         "CIEMAT",
+		"n_iter":           1
+	}
+}

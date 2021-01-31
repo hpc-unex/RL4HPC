@@ -41,7 +41,7 @@ def get_reward(state, actions, params):
 
 	r = torch.sum(state * D).item() # - Baseline.get()
 	# print("Coste: ", r)
-	r = r / 1000000
+	r = r / 100000
 
 	valid = True
 

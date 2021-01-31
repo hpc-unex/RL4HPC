@@ -44,7 +44,7 @@
 
 	"Benchmark": {
 		"exec":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/bcast",
-		"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+		"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast_8_2.txt",
 		"collective":       "MPI_Bcast",
 		"algorithm":        "Graph-Based",
 		"platform":         "CIEMAT",

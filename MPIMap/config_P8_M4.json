@@ -23,7 +23,7 @@
 
 	"Hyperparameters": {
 		"n_episodes":          400000,
-		"gamma":               1.00,
+		"gamma":               0.95,
 		"alpha":               0.001,
 		"K":                   1
 	},
@@ -44,7 +44,7 @@
 
 	"Benchmark": {
 		"exec":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/bcast",
-		"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast.txt",
+		"opts":         		"/home/jarico/RL4HPC/MPIMap/code/Env/tLop/adaptive_bcast_8_4.txt",
 		"collective":       "MPI_Bcast",
 		"algorithm":        "Graph-Based",
 		"platform":         "CIEMAT",
