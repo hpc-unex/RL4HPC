@@ -136,7 +136,12 @@ class Decoder(nn.Module):
 
 		# print("[Decoder] hidden: ", hidden[0])
 
-		h = torch.stack(hidden, dim=1).squeeze(0)
+		if self.typecell == "LSTM":
+		 	h = torch.stack(hidden, dim=1).squeeze(0)
+		elif self.typecell == "GRU":
+			h = hidden
+		else:
+			print("ERROR: type of RNN cell not supported")
 
 		# print("    [cat]:       ", embedded[0].size(), h[0].size(), torch.cat((embedded[0],h[0]),1).size())
 		# print("    [cat]:       ", state[0].size(), h[0].size(), torch.cat((state[0],h[0]),1).size())
