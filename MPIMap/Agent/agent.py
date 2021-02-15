@@ -127,7 +127,7 @@ class Agent(object):
 		action_probs = self.policy(state_tensor)
 		action_probs = action_probs.view(self.P, -1)
 
-		
+
 		# Using "masking" of action probabilities
 		# Set action_probs to -torch.inf for nodes full
 		capacity = self.capacity.clone().detach()
@@ -201,15 +201,16 @@ class Agent(object):
 	def learn (self):
 
 		# Compute discounted rewards (to Tensor):
+		# print("[REINFORCE] rewards: ", self.saved_rewards)
 		discounted_reward = self.get_return(self.saved_rewards).to(self.device)
-		# print("[REINFORCE] discounted_reward: ", discounted_reward)
+		# print("[REINFORCE] discounted_reward: ", discounted_reward)
 
 		# Compute log_probs:
 		logprob_tensor = torch.stack(self.saved_logprobs).to(self.device)
-		# print("[REINFORCE] logprob: ", logprob_tensor)
+		# print("[REINFORCE] logprob: ", logprob_tensor)
 
 		# Compute loss:
-		loss = logprob_tensor * discounted_reward
+		loss = -logprob_tensor * discounted_reward
 		# print("[REINFORCE] v. loss: ", loss)
 		loss = torch.sum(loss)
 		# print("[REINFORCE] loss: ", loss)

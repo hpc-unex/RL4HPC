@@ -31,17 +31,17 @@ def get_reward(state, actions, params):
 	D = torch.zeros((P, P)).detach().to(device)
 	for i in range(0, P):
 		for j in range(0, P):
-			if i == j:
-				value = 10
-			elif actions[i] == actions[j]:
-				value = 1
-			else:
-				value = 2
+			if i == j:                         ## Same processor
+				value = 1 # 10
+			elif actions[i] == actions[j]:     ## Same node
+				value = 1 # 2
+			else:                              ## Different node
+				value = 2 # 1
 			D[i,j] = value
 
 	r = torch.sum(state * D).item() # - Baseline.get()
 	# print("Coste: ", r)
-	r = r / 100000
+	r = -r / 100000
 
 	valid = True
 
