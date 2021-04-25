@@ -1,0 +1,76 @@
+
+		r = 0
+		MAX_R = 12 * 16384 * 64
+
+		if done:
+			over_sub = np.ones(self.M, dtype=int)
+			#D = np.ones((self.P, self.P))
+			r = []
+			
+			#Create dict with comms
+			#row_, col_ = np.nonzero(self.comms)
+			over_sub = np.abs(np.bincount(self.state) - (self.P / self.M)).astype(int)
+			#dict_comms = defaultdict(set)
+			#[dict_comms[delvt].add(pin) for delvt, pin in zip(row_, col_)]
+			
+			for comm in self.graph["comms"]["edges"]:
+				if self.state[comm[0]] == self.state[comm[1]]:
+					if over_sub[self.state[comm[0]]] == 0:
+						r.append(10 * self.comms[comm[0]][comm[1]])
+				#	else:
+				#		r.append(-2 * self.comms[comm[0]][comm[1]])
+				#else:
+				#	r.append(-1 * self.comms[comm[0]][comm[1]])
+				#for v in value:
+				#	if self.state[key] == self.state[v]: 
+				#		if over_sub[self.state[key]] == 0:
+				#			D[key][v] = 5
+				#		else:
+				#			D[key][v] = -over_sub[self.state[key]]*2
+				#	else:
+				#		D[key][v] = -over_sub[self.state[key]]
+
+			#r = np.sum(np.multiply(self.comms, D))
+
+			# Normalize
+			r = np.sum(np.multiply(np.divide(r,MAX_R),100))
+
+			#print("reward: ", r); exit()
+		else:
+			c = list(self.state).count(action)
+			if c > 2:
+				r = -1
+			else:
+				r = c
+		return r
+		
+		
+		
+		
+		
+				MAX_R = 12 * 16384 * 64
+
+		over_sub = np.ones(self.M, dtype=int)
+		#D = np.ones((self.P, self.P))
+		r = 0
+		count = list(self.state).count(action)
+		
+		self.cap[action] -= 1
+		if self.currP-1 > 0:
+			for p in list(self.dcomm[self.currP-1]):
+				if p < self.currP-1 and self.state[p] == action:
+					if self.cap[action] >= 0:
+						r = 10
+					else:
+						r = self.cap[action]
+				elif p >= self.currP-1:
+					r = 0
+				else:
+					r = self.cap[action]
+		else:
+			r = 0
+		
+		# Normalize
+		#r = np.sum(np.multiply(np.divide(r,MAX_R),100))
+
+		print("reward: ", r)
