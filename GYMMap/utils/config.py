@@ -6,7 +6,7 @@ import numpy as np
 def read_config ():
 	
 	config = {}
-	config_file = '/home/usuario/reinforce/GYMMap/utils/config.json'
+	config_file = '/home/sergio/Documentos/DOCTORADO/reinforce/GYMMap/utils/config.json'
 	if len(sys.argv) == 2:
 		config_file = sys.argv[1]
 	
@@ -20,14 +20,17 @@ def read_config ():
 	return config
 	
 	
-def adjacency (P, comms):
+def adjacency (P, comms, msg):
 
     adj = np.zeros((P, P), dtype=np.int)
-    for i, edge in enumerate(comms["edges"]):
+    #for i, edge in enumerate(comms["edges"]):
+    for i, edge in enumerate(comms):
         src = edge[0]
         dst = edge[1]
-        adj[src, dst] = comms["m"][i]
-        adj[dst, src] = comms["m"][i]
+        adj[src, dst] = msg[i]
+        adj[dst, src] = msg[i]
+
         # Symmetric
 
     return adj
+
