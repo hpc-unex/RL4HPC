@@ -53,7 +53,7 @@ class MyMonitorWrapper(gym.Wrapper):
 
         obs, reward, done, info = self.env.step(action)
 
-        if self.episode_length == 8:
+        if self.episode_length == 32:
           done = True
           
         self.episode_reward.append(reward)
@@ -89,10 +89,10 @@ def make_env(env_id, rank, config=None, seed=0):
 	return _init
 
 config = read_config()
-n_procs = 8
-#env = MyMonitorWrapper(gym.make('MPIMap-v0', params=config))
-#env = DummyVecEnv([lambda: MyMonitorWrapper(gym.make('MPIMap-v0', params=config))])
-env = SubprocVecEnv([make_env('MPIMap-v0', i, config) for i in range(n_procs)], start_method='fork')
+n_procs = 4
+env = MyMonitorWrapper(gym.make('MPIMap-v0', params=config))
+#env = DummyVecEnv([lambda: MyMonitorWrapper(gym.make('MPIMap-v0', params=config))]
+#env = SubprocVecEnv([make_env('MPIMap-v0', i, config) for i in range(n_procs)], start_method='fork')
 #eval_env = MyMonitorWrapper(gym.make('MPIMap-v0', params=config))
 
 #check_env(env)
@@ -100,27 +100,26 @@ env = SubprocVecEnv([make_env('MPIMap-v0', i, config) for i in range(n_procs)], 
 rewards = []
 
 time_start = time.time()
-model = A2C("MlpPolicy", env, n_steps=8, learning_rate=0.001, gamma=1, verbose=0)
-model.learn(total_timesteps=100000)
-print("FUN")
-exit()
-obs = env.reset()
-for i in range(8):
-    action, _states = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
+model = A2C("MlpPolicy", env, n_steps=1, learning_rate=0.001, gamma=1.0, verbose=0, device='cpu')
+model.learn(total_timesteps=3000000)
+
+#obs = env.reset()
+#for i in range(8):
+#    action, _states = model.predict(obs, deterministic=True)
+#    obs, reward, done, info = env.step(action)
     #env.render()
     #print("i:", obs, info)
     #if done:
       #obs = env.reset()
       # print(info)
-print(time.time() - time_start)
+#print(time.time() - time_start)
 #print("Mean Rewards: ", np.mean(rewards))
 #env.render()
 
-print(info[0]['terminal_observation'])
-print(info[1]['terminal_observation'])
-print(info[2]['terminal_observation'])
-print(info[3]['terminal_observation'])
+#print(info[0]['terminal_observation'])
+#print(info[1]['terminal_observation'])
+#print(info[2]['terminal_observation'])
+#print(info[3]['terminal_observation'])
 env.close()
 
 """
@@ -142,3 +141,4 @@ for episode in range(10):
 
     env.close()
 """
+
