@@ -17,6 +17,7 @@ class MPIMap(gym.Env):
 		self.P = self.graph["P"]
 		self.M = self.graph["M"]
 		self.m = self.graph["m"]
+		self.cap_int = int(self.graph["cap"])
 		self.cap = self.graph["capacity"]
 
 		self.state = np.zeros(self.P, dtype=int)
@@ -28,12 +29,16 @@ class MPIMap(gym.Env):
 
 		self.observation_space = spaces.Box(low=0, high=self.M, shape=(self.P,), dtype=int)
 
+		self.graph["comms"], self.depth, self.msgs = self.binomial_broadcast()
+
 		self.currP = 0
-		self.comms = adjacency(self.P, self.graph["comms"])
+		self.comms = adjacency(self.P, self.graph["comms"], self.msgs)
 
-		self.mcomm = np.zeros((np.max(self.graph["comms"]["edges"], axis=0)+1), dtype=int)
+		#self.mcomm = np.zeros((np.max(self.graph["comms"]["edges"], axis=0)+1), dtype=int)
+		self.mcomm = np.zeros((np.max(self.graph["comms"], axis=0)+1), dtype=int)
 
-		for i,j in self.graph["comms"]["edges"]:
+		#for i,j in self.graph["comms"]["edges"]:
+		for i,j in self.graph["comms"]:
 			self.mcomm[i][j] = 1
 			
 		
@@ -45,8 +50,7 @@ class MPIMap(gym.Env):
 		
 		self.levels = self.calculate_levels()
 		
-		
-		self.depth = self.calculate_depth()
+		#self.depth = self.calculate_depth()
 
 
 	def step(self, action):
@@ -57,8 +61,8 @@ class MPIMap(gym.Env):
 		self.currP = self.currP + 1
 		self.stepn += 1
 		r = 0
-		if self.stepn % 10000 == 0:
-			print(self.stepn * 8)
+		#if self.stepn % 10000 == 0:
+		#	print(self.stepn * 4)
 
 		# 2. Finish episode?
 		done = False
@@ -67,6 +71,7 @@ class MPIMap(gym.Env):
 			done = True
 			# 3: Compute reward
 			r = self.__compute_reward(action, done)
+			print(self.stepn, "State:", self.state, "R:", r)
 		return [self.state, r, done, self.info]
 
 
@@ -74,7 +79,7 @@ class MPIMap(gym.Env):
 
 		self.currP = 0
 		self.state = np.zeros(self.P, dtype=int)
-		self.cap = [2] * self.M
+		self.cap = [self.cap_int] * self.M
 		return self.state
 
 
@@ -96,34 +101,24 @@ class MPIMap(gym.Env):
 			i += 1
 		self.rows = i-1
 		return d
-		
-		
-	def calculate_depth(self):
-		
-		n_d = np.zeros(self.P)
-		copy_dcomm = self.dcomm.copy()
-		end = False
-		d = 4
-		first = True
-		
-		while len(copy_dcomm) != 0:
-			for i in range(0,self.P):
-				all_outs = True				
-				if i not in copy_dcomm.keys() and first == True:
-					n_d[i] = d
-				elif i in copy_dcomm.keys() and first == False:
-					for j in copy_dcomm[i]:
-						if j in copy_dcomm.keys():
-							all_outs = False
-							break;
-							 
-					if all_outs == True:
-						copy_dcomm.pop(i)
-						n_d[i] = d
-			d=3 if first==True else d-1
-			first = False
-			
-		return n_d
+	
+	def binomial_broadcast(self):
+		order=5
+		nodes = sum([2**k for k in range(order)])
+
+		lista_com = []
+		depth = [0]
+		msgs = []
+		for i in range(int(np.ceil(np.log2(nodes)))):
+			n_com = 2**i-1
+			for idnode in range(nodes+1): # [0,nodes+1)
+				if idnode+2**i <= nodes:
+					lista_com.append([idnode, idnode+2**i])
+					depth.append(i)
+					msgs.append(65536) #Tamaño de mensaje
+				if n_com == 0: break
+				else: n_com-= 1
+		return lista_com, depth, msgs
 
 	def __compute_reward(self, actions, done):
 
@@ -134,46 +129,28 @@ class MPIMap(gym.Env):
 		#D = np.ones((self.P, self.P))
 		r = []
 
-		#count = list(self.state).count(actions)
-
 		for i in range(0, self.P):			
 			if i == 0:
 				r.append(0)
 			else:
-				for j in range(0, 4):
+				for j in range(0, np.max([a for a in self.levels.keys()])+1):
 					for z in self.levels[j]:
 						if i == z[1]:
-								
 							if self.state[i] == self.state[z[0]]:
-								r.append(self.depth[i] * self.cap[self.state[i]])
+								r.append(self.depth[i])
 							else:
-								pass								
+								pass	
+												
 			self.cap[self.state[i]]-=1 #if self.cap[self.state[i]]>0 else 0
-			
-#		for i in range(0, self.P):
-#			self.cap[self.state[i]] -= 1
-#			for j in range(0, self.P):
-#				if i == 0 and j == 0:
-#					r.append(0)
-#				elif i in self.dcomm[j]:
-#					if self.cap[self.state[i]] < 0:
-#						r.append(-10)
-#					elif self.cap[self.state[j]] >= 0 and self.state[i] == self.state[j]:
-#						r.append(self.depth[i]*2)
-#					elif self.cap[self.state[j]] < 0 and self.state[i] == self.state[j]:
-#						r.append(-10)
-#					elif self.cap[self.state[j]] >= 0 and self.state[i] != self.state[j]:
-#						r.append(-(self.depth[i]))
-#					elif self.cap[self.state[j]] < 0 and self.state[i] != self.state[j]:
-#						r.append(0)
-#					else:
-#						print("ERROR"); exit()
-#				else:
-#					pass
-
 		r = sum(r)
-		print("STATE:", self.state)
+
+		for i in self.cap:
+			if i < 0:
+				return 0
+		if r > 64:
+			return 1
+		return r**1/64**1
 		# Normalize
 		#r = np.sum(np.multiply(np.divide(r,MAX_R),100))
 
-		return r
+		#return r
